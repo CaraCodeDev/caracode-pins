@@ -8,9 +8,9 @@
 
 # carapin — Spec
 
-carapin is an Astro dev-toolbar app for pinning notes onto elements of a site
-while it runs in local dev. Each pin records where the element lives in the
-source (file and line), what the note says, and its status. Pins are written to
+carapin (`@caracode/pins`) is an Astro dev-toolbar app for pinning notes onto
+elements of a site while it runs in local dev. Each pin records where the element
+lives in the source (file and line), a short comment thread, and its status. Pins are written to
 JSON files in the site's repo, and Claude reads those files and acts on them.
 It is for one developer (Rich) working alone on his own Astro sites. It never
 edits source code and never runs outside `astro dev`.
@@ -22,8 +22,9 @@ edits source code and never runs outside `astro dev`.
   on localhost: no accounts, no server, no sync, no configuration beyond
   installing it.
 - **Status:** Spec in progress · settled: Astro only, pin lifecycle, pins-only
-  writes, free-text pins, Claude skill covers pins not CMS · open: see "Open
-  questions" · next: pin anchoring and the in-page UI · 2026-09-23.
+  writes, free-text pins, comment threads with reply-reopens, toolbar-panel UI,
+  component-by-default, package name · open: screenshots · next: Rich signs off,
+  then draft the implementation plan · 2026-09-23.
 
 ---
 
@@ -49,6 +50,7 @@ and hand the pile to Claude.
 - Pin markers shown on the page, and a list of pins for the current page.
 - Pin status: open → review → done, with done pins hidden by default.
 - Pins stored as JSON in the site repo.
+- A comment thread on every pin, so Rich and Claude can go back and forth.
 - A Claude skill, shipped with the package, that teaches Claude the file format
   and how to work through pins.
 
@@ -69,8 +71,9 @@ and hand the pile to Claude.
 
 ## Core concept
 
-**A pin is a note attached to an element, with a status.** Everything else is a
-detail of how it's placed, shown, or stored.
+**A pin is a comment thread attached to an element, with a status.** The first
+comment is Rich's original note. Everything else is a detail of how it's placed,
+shown, or stored.
 
 The mistake to avoid is treating "tweak" pins and "CMS" pins as two different
 features with two different UIs. They are the same thing: Rich points at an
@@ -100,18 +103,40 @@ but it's worth knowing when Claude reads content pins.
 - **done** — Rich has checked it. Done pins are hidden by default, with a toggle
   to show them.
 
-Rich can move a pin back from review to open if the change isn't right, and add
-to the note. Claude never marks a pin done; only Rich does.
+Claude never marks a pin done; only Rich does.
 
 *Why three states and not two:* with only open/done, Claude would either close
 pins Rich hasn't checked, or leave finished work looking untouched. "review" is
 the handoff.
 
+### Replying sends it back
+
+The case that shaped this: Rich pins a button, "make it blue". Claude works the
+pins, makes it royal blue, and moves the pin to review with a comment saying so.
+Rich wanted indigo.
+
+**Rich replies "no, indigo" and the reply moves the pin back to open on its own.**
+There's no separate "send back" step. The next time Claude works the pins, it
+picks the pin up again and reads the whole thread, with the latest comment as
+the instruction.
+
+- *Rejected: comment and leave it in review.* Claude only works open pins, so
+  the comment would sit there unread until Rich remembered to also change the
+  status. Two actions for one intent.
+- *Rejected: a separate "send back" button.* Same problem, and a reply on a
+  review pin always means "not right yet" in practice.
+- Replying to a done pin reopens it too. Replying to an open pin just adds to
+  the thread.
+- *Vivid lesson:* this is the same conclusion Vivid reached with its send-back
+  notification. A reply is the signal; a separate status change gets forgotten.
+
 ## Data model (entities)
 
-- **Pin** — belongs to one page. Carries: the note text, optional label, status,
-  where the element is (see "Anchoring"), created/updated times, and Claude's
-  resolution note once it has acted.
+- **Pin** — belongs to one page. Carries: optional label, status, where the
+  element is (see "Anchoring"), created/updated times, and its comments.
+- **Comment** — belongs to a pin, in order. Carries: author (`rich` or `claude`),
+  text, time. The first comment is the original note; Claude's "what I changed"
+  note is a comment too.
 - **Page** — a URL path in the site. Owns a list of pins. One JSON file per page.
 
 ## Anchoring
@@ -133,13 +158,34 @@ Record several anchors, because each one breaks differently:
 *Lesson from Vivid:* when a pin can't find its element, show it as "lost" in the
 pin list rather than guessing and attaching it to the wrong thing.
 
+### Component by default
+
+When Rich pins one of three feature cards, the pin usually means the component,
+not that one card. So Claude treats a pin as a change to the component at its
+source location by default. The note overrides this ("just this one", "only on
+the homepage"), and Claude also has the site's own context to go on. Both the
+source location and the exact instance are recorded, so either reading is
+possible. (Settled, with free text doing the rest.)
+
+## In-page UI
+
+Everything happens in the **Astro dev-toolbar panel**, not in popovers on the
+page. The panel has room for a thread, and keeps the page itself clean. Clicking
+a pin marker on the page opens that pin in the panel.
+
+*Rejected: a popover next to the element (Vivid's approach).* It's fast for a
+one-line note but cramped once pins have threads.
+
 ## Functional requirements
 
 **Toolbar app**
-- Turn pin mode on, hover to highlight elements, click to place a pin, type a note.
-- Show pin markers on the page. Clicking a marker opens its note.
+- Turn pin mode on, hover to highlight elements, click to place a pin; the
+  panel opens with the note input.
+- Show pin markers on the page. Clicking a marker opens its pin in the panel.
 - List the current page's pins, filterable by status. Done hidden by default.
-- Change a pin's status; edit or delete a pin.
+- Each pin shows its thread. Rich can reply; replying to a review or done pin
+  moves it back to open.
+- Mark a review pin done; delete a pin.
 
 **Storage**
 - Pins are saved via the Astro dev server to `.carapin/` in the site repo, one
@@ -149,8 +195,8 @@ pin list rather than guessing and attaching it to the wrong thing.
 
 **Claude skill**
 - Explains the file format and the lifecycle.
-- "Work the pins": go through open pins, make the changes, move each to review
-  with a short note.
+- "Work the pins": go through open pins, read each thread, make the change,
+  add a comment saying what was done, and move the pin to review.
 
 ## Non-functional requirements
 
@@ -183,19 +229,17 @@ repo, next to the code it's about.
 
 ## Scope discipline (v1 vs later)
 
-- **v1:** pins with free-text notes, the three-state lifecycle, per-page JSON,
-  the Claude skill for working pins.
+- **v1:** pins with comment threads, the three-state lifecycle with
+  reply-reopens, per-page JSON, the Claude skill for working pins.
 - **Later:** other frameworks; screenshots attached to pins; a cross-page pin
   list; a "content" helper for the CMS step.
 
 ## Open questions & to-verify
 
-- **Pins on repeated components.** A feature card rendered in a loop: does a pin
-  mean "this card" or "every card"? Lean: record the instance (selector) and the
-  source location, and let the note say which. Next question to answer.
-- **The in-page UI.** Where the note input appears (next to the element, or in
-  the toolbar panel), and how markers look.
-- **Package name.** `carapin` or `@caracode/pins`? Check npm availability.
+- **How markers look** on the page. A design question for the build, not a
+  product one.
+- **Publishing.** `@caracode/pins` is the name; confirm the scope is Rich's on
+  npm before publishing.
 - **Screenshots.** A cropped screenshot per pin would help Claude, but costs
   complexity. Lean: not in v1, since Claude can open the page itself.
 - **Verify at build time:** the current Dev Toolbar App API (client ↔ server
