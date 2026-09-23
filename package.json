@@ -9,7 +9,8 @@
   "scripts": {
     "dev": "pnpm --filter @caracode/pins build && concurrently --kill-others-on-fail --names pins,playground --prefix-colors cyan,magenta \"pnpm --filter @caracode/pins dev\" \"pnpm --filter playground dev\"",
     "build": "pnpm -r build",
-    "typecheck": "pnpm -r typecheck"
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm --filter @caracode/pins test"
   },
   "devDependencies": {
     "concurrently": "^10.0.5",
