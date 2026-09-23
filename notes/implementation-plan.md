@@ -26,7 +26,7 @@ so the skill describes a format that's settled. Publishing is last.
 
 ---
 
-## M0 — Scaffold  <!-- ☐ TODO / ☑ DONE <date> -->
+## M0 — Scaffold  <!-- ☑ DONE 2026-09-23 -->
 
 Small enough for Claude to do rather than Rich.
 
@@ -42,6 +42,8 @@ Small enough for Claude to do rather than Rich.
 icon that opens an empty panel.
 
 *Milestone doc:* `notes/2026-09-23-m0-scaffold.md`
+
+☑ 2026-09-23: exit demonstrated (Pins panel opens on the playground at 4358). Found: Astro 7.3.4 emits no `data-astro-source-*` attributes; M1 now has to supply source locations itself.
 
 ## M1 — Spike: element to file round trip  <!-- ☐ TODO / ☑ DONE <date> -->
 
@@ -59,6 +61,8 @@ Throwaway-tolerant. Proves the risky parts before M2 builds on them.
 **Exit:** click the second feature card in the playground and a JSON file
 appears in `.carapin/` with the card component's file and line, a selector for
 that exact card, and its text. Editing that file by hand updates the panel.
+
+*Milestone doc:* `notes/2026-09-23-m1-spike.md`
 
 ## M2 — Pins, threads and the panel  <!-- ☐ TODO / ☑ DONE <date> -->
 
