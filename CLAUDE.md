@@ -16,3 +16,9 @@ into the notes method. Full method:
   with a one-line dated note.
 
 If the code contradicts the spec or plan, stop and flag it; don't improvise.
+
+## Local dev
+
+The playground Astro dev server runs on **port 4358**, never Astro's default
+4321. Another Astro project is usually already running on 4321. Set it in
+`playground/astro.config.mjs` (`server.port`) and `.claude/launch.json`.
