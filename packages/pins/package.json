@@ -1,0 +1,31 @@
+{
+  "name": "@caracode/pins",
+  "version": "0.0.0",
+  "description": "Astro dev-toolbar app for pinning notes onto elements in local dev.",
+  "type": "module",
+  "license": "MIT",
+  "keywords": ["astro-integration", "astro", "dev-toolbar"],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./toolbar": {
+      "types": "./dist/toolbar/app.d.ts",
+      "default": "./dist/toolbar/app.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch --preserveWatchOutput",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "peerDependencies": {
+    "astro": "^7.0.0"
+  },
+  "devDependencies": {
+    "astro": "^7.3.4",
+    "typescript": "^7.0.2"
+  }
+}
