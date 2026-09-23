@@ -5,7 +5,7 @@
 
 # M3 — The Claude skill
 
-Status: **Spec written · next: build** · Last updated: 2026-09-23
+Status: **M3 shipped; exit verified except Rich's own session (step 8) · next: M4** · Last updated: 2026-09-23
 
 M2 made pins you can place, read and answer. M3 teaches Claude to act on them.
 Rich says "work the pins" in a site that has carapin installed; Claude reads the
@@ -92,22 +92,26 @@ instructions. What it has to get right:
 
 ## What's built so far (the contract)
 
-<!-- empty at spec time -->
+- **Phase 1 — skill + installer.** `packages/pins/skill/SKILL.md` (name `pins`, ~70 lines, neutral wording: "the developer", not Rich) ships via `files: ["dist", "skill"]`. `installSkill` (`packages/pins/src/skill.ts`) runs from `astro:server:setup` (dev only), non-blocking, errors → warning. Writes `<site>/.claude/skills/pins/SKILL.md` with `<!-- carapin-skill v<version> · … -->` straight after the frontmatter. **Missing → write; carapin marker and content differs → overwrite; no marker → left alone; one log line for each; identical → nothing.** (Content comparison, not version-only: see Resolved decisions.) Package dir found as `new URL('..', import.meta.url)` (works from `dist/` in the workspace and from npm). Tests `test/skill.test.ts` (111 total). `.gitignore` ignores `playground/.claude/skills/pins/`.
 
 ## Phases
 
-### Phase 1 — The skill and its installer  <!-- ☐ TODO -->
+### Phase 1 — The skill and its installer  <!-- ☑ DONE 2026-09-23 -->
 
-- [ ] `packages/pins/skill/SKILL.md` per Decisions 1, 3–6.
-- [ ] Installer per Decision 2, run from the dev-server path only (never on `astro build`),
+- [x] `packages/pins/skill/SKILL.md` per Decisions 1, 3–6.
+- [x] Installer per Decision 2, run from the dev-server path only (never on `astro build`),
   reading the package version from the package's own `package.json`. Included in the
   published files.
-- [ ] Tests for the installer's three cases (missing, older carapin version, user-owned
+- [x] Tests for the installer's three cases (missing, older carapin version, user-owned
   file) and the "current → no write" case.
-- [ ] This repo's `.gitignore` ignores the installed copy at `playground/.claude/skills/pins/`
+- [x] This repo's `.gitignore` ignores the installed copy at `playground/.claude/skills/pins/`
   so the package's copy stays the single source.
 
-*Files:* —
+*Verified 2026-09-23:* orchestrator: typecheck + build clean, 111 tests pass; `pnpm dev` installed the skill with the marker on line 5. Builder: `pack --dry-run` lists `skill/SKILL.md`; a real tarball unpacked as `node_modules/@caracode/pins` installed correctly; restart = no write/no log; marker removed → left alone + one log line; no `.claude/` after `astro build`.
+
+**Exit run (orchestrator):** wrote three pins into `playground/.carapin/index.json` (CTA button "make it blue", card 2 title "add a short eyebrow label above the heading", hero section "Hero: image or video, optional CTA with URL"). A fresh Opus agent told only "read the installed skill, work the pins": button → royal blue via a new `button--blue` class (`index.astro:64`, `global.css:124`); "Why it matters" eyebrow added in `FeatureCard.astro:18` (all three cards); both pins `review` with claude comments citing file:line; hero pin skipped and listed as content; nothing `done`. Replied "no, indigo" via the package's own `replyToPin` → btn01 `open`. A second fresh agent: worked only btn01 (card02 left in review, hero skipped again), button indigo, btn01 back to `review`. Panel screenshot: two review pins + the open content pin, indigo button and three eyebrows visible. Playground code reverted afterwards.
+
+*Files:* `packages/pins/skill/SKILL.md`, `packages/pins/src/{skill.ts,index.ts}`, `packages/pins/package.json`, `packages/pins/test/skill.test.ts`, `.gitignore`.
 
 ---
 
@@ -140,7 +144,14 @@ Revert the playground's code changes after verifying; the playground is a fixtur
 
 ---
 
+## Resolved decisions (2026-09-23)
+
+1. **The installer compares content, not just version** (orchestrator change after the build). Version-only meant skill edits never reached a site while the version stayed `0.0.0`. Now a carapin-marked copy is rewritten whenever its text differs from what the package would write; still never touches an unmarked file. (Phase 1)
+2. **Skill wording is neutral** ("the developer"), since it ships on npm. (Phase 1)
+
 ## Watch-outs / known limitations
+
+- **Astro logs as JSON when stdout isn't a terminal** (e.g. under an agent). The installer's log lines look like `{"message":"Installed the pins skill…"}` there; normal in a real terminal.
 
 - **Port 4321 is Rich's other project.** Never touch it.
 - **The installer must not run on `astro build`** or in `astro preview`.

@@ -91,7 +91,7 @@ element disappears, and it shows as lost.
 
 ☑ 2026-09-23: exit demonstrated (place / reply / done + show done / delete / hand-edited review shows live and reply reopens / lost pin). Rich's look-and-feel checks outstanding.
 
-## M3 — The Claude skill  <!-- ☐ TODO / ☑ DONE <date> -->
+## M3 — The Claude skill  <!-- ☑ DONE 2026-09-23 -->
 
 - A skill shipped in the package that explains the file format and the
   lifecycle, and teaches "work the pins" (Spec → "Functional requirements /
@@ -107,6 +107,8 @@ every card, not just the one pinned. Reply "no, indigo" on the button; it
 reopens, and the next "work the pins" fixes it.
 
 *Milestone doc:* `notes/2026-09-23-m3-claude-skill.md`
+
+☑ 2026-09-23: exit demonstrated with fresh agents following the installed skill (blue → review, eyebrow on all cards → review, content pin skipped; "no, indigo" reopened only the button and the second run fixed it). Rich's own session outstanding.
 
 ## M4 — Publish and first real site  <!-- ☐ TODO / ☑ DONE <date> -->
 
