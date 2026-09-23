@@ -41,6 +41,8 @@ Small enough for Claude to do rather than Rich.
 **Exit:** `pnpm dev` runs the playground, and the Astro toolbar shows a carapin
 icon that opens an empty panel.
 
+*Milestone doc:* `notes/2026-09-23-m0-scaffold.md`
+
 ## M1 — Spike: element to file round trip  <!-- ☐ TODO / ☑ DONE <date> -->
 
 Throwaway-tolerant. Proves the risky parts before M2 builds on them.

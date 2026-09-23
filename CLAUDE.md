@@ -17,6 +17,22 @@ into the notes method. Full method:
 
 If the code contradicts the spec or plan, stop and flag it; don't improvise.
 
+## Planning workflow (big / multi-session features)
+
+For multi-session features Rich uses a living plan doc — spec + build log in one
+file per feature at `notes/<YYYY-MM-DD>-<feature>.md`. Full method (routing,
+conventions, templates): `/Users/rich/NothingNotes/Research/Claude/notes-planning-method.md`.
+Templates: `notes/spec-template.md`, `notes/prompt-template.md`.
+
+- **"make a spec / make a note"** → create the doc from `notes/spec-template.md`,
+  before implementing. Slice phases on the model-routing seam (see the method doc).
+- **"run the spec" / `/run-spec`** → orchestrated build; the orchestrator divides the work and verifies it.
+- **When a phase ships** → update the doc before moving on. Its checkboxes and
+  Status line *are* the state between sessions.
+
+If the code contradicts the spec — file moved, assumption false, rule impossible as
+written — **stop and flag it**; don't improvise a reinterpretation.
+
 ## Local dev
 
 The playground Astro dev server runs on **port 4358**, never Astro's default
