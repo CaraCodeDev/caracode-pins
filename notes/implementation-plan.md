@@ -45,7 +45,7 @@ icon that opens an empty panel.
 
 ☑ 2026-09-23: exit demonstrated (Pins panel opens on the playground at 4358). Found: Astro 7.3.4 emits no `data-astro-source-*` attributes; M1 now has to supply source locations itself.
 
-## M1 — Spike: element to file round trip  <!-- ☐ TODO / ☑ DONE <date> -->
+## M1 — Spike: element to file round trip  <!-- ☑ DONE 2026-09-23 -->
 
 Throwaway-tolerant. Proves the risky parts before M2 builds on them.
 
@@ -63,6 +63,8 @@ appears in `.carapin/` with the card component's file and line, a selector for
 that exact card, and its text. Editing that file by hand updates the panel.
 
 *Milestone doc:* `notes/2026-09-23-m1-spike.md`
+
+☑ 2026-09-23: exit demonstrated (card 2's title → `FeatureCard.astro:17:5` in `.carapin/index.json`; hand edit reached the panel live). Source locations come from carapin's own dev-only transform using compiler-rs `parse()`.
 
 ## M2 — Pins, threads and the panel  <!-- ☐ TODO / ☑ DONE <date> -->
 
