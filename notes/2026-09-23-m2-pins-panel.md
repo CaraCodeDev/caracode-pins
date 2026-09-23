@@ -5,7 +5,7 @@
 
 # M2 — Pins, threads and the panel
 
-Status: **M2 shipped; exit verified except Rich's look-and-feel checks (steps 11–12) · next: M3** · Last updated: 2026-09-23
+Status: **M2 shipped; follow-up Phase 4 (drawer placement) in progress** · Last updated: 2026-09-23
 
 **State detail:** M1 proved the round trip with a provisional file shape and a
 plain-text panel. M2 replaces both with the real thing: the pin file format,
@@ -192,6 +192,50 @@ spacing/type/colour tokens; illustrative for copy and sample data.
 *Files:* `packages/pins/src/toolbar/{styles.ts,panel.ts,page-layer.ts}`.
 
 ---
+
+### Phase 4 — Drawer placement: push, right, left  <!-- ☐ TODO · follow-up 2026-09-23 -->
+
+Rich's first look (2026-09-23): the right-docked drawer covers the right 400px of the page, so
+nothing there can be pinned, and markers there are hidden. Supersedes Decision 10's "docked right".
+
+**Decisions (locked 2026-09-23):**
+- **A placement setting with three values: `push` (default), `right`, `left`.** Shown as a small
+  segmented control in the drawer header. Remembered per browser in `localStorage` (wrapped in
+  try/catch; falls back to `push`). Not written to any file.
+- **`push`** narrows the page by the drawer's width while the panel is open, like docked devtools,
+  so nothing is covered. The drawer sits in the freed space on the right. **Closing the panel (or
+  switching away from push) restores the page exactly**; nothing of carapin's stays on the page
+  when the panel is closed (Decision 6 holds). The mechanism is the builder's choice (e.g. a
+  width/margin on `html` set while open); it must not reload the page.
+- **Smart fallback:** if the window is narrower than **1280px**, `push` behaves as `right` (overlay),
+  and the control shows that (e.g. "Push · overlaying, window too narrow"). Re-evaluated on resize.
+- **`right` / `left`** overlay the page as today, on that side. **In these overlay modes the drawer
+  tucks into a slim tab at its edge while pin mode is on and no composer is open**, so the whole
+  page is clickable; clicking an element (composer opens) slides it back; after save or cancel it
+  tucks again if pin mode is still on. Clicking the tab expands it. In `push` mode there's no tuck.
+- Markers and hover already follow layout changes (PageLayer); they must line up after a
+  placement switch and after push narrows the page.
+
+**Known limitation (accepted):** in `push` mode, `position: fixed` page elements that span the
+viewport (sticky headers, cookie bars) still extend under the drawer. Their right edge can be
+covered; switch to `left` to reach it.
+
+- [ ] Placement setting + control, persisted, default `push`.
+- [ ] Push with the 1280px fallback; page restored exactly on close/switch.
+- [ ] Tuck in `right`/`left` during pin mode; expands for the composer.
+- [ ] Tests for the pure parts (effective placement from setting + window width; storage fallback).
+
+**Verify:**
+1. Typecheck, build, tests; prod grep clean.
+2. Window ≥ 1280 (default push): open Pins → the page narrows, nothing under the drawer; pin the
+   rightmost element on the page (the third feature card's title) → saved, marker visible on it.
+3. Close the panel → page back to full width; `document.documentElement` has no carapin inline
+   styles or attributes left.
+4. Switch to `right`, enter pin mode → drawer tucks to a tab; click the third card's title →
+   drawer returns with the composer; save → tucks again. Switch to `left` → same on the left.
+5. Reload → placement remembered.
+6. Window < 1280 with `push` → overlays on the right, control says so.
+7. **(HUMAN)** Push mode on Rich's widescreen feels right; the tuck/expand motion is quick, not fussy.
 
 ## Exit verify (milestone M2)
 
