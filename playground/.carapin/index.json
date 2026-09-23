@@ -1,0 +1,52 @@
+{
+  "page": "/",
+  "pins": [
+    {
+      "id": "ea1deb68",
+      "status": "open",
+      "createdAt": "2026-09-23T21:21:43.290Z",
+      "updatedAt": "2026-09-23T21:21:43.290Z",
+      "anchor": {
+        "source": "src/pages/index.astro:39:5",
+        "sourceChain": [
+          "src/pages/index.astro",
+          "src/layouts/Base.astro"
+        ],
+        "selector": "body > main > section:nth-of-type(1) > div",
+        "text": "SMALL-BATCH SPECIALTY COFFEE Coffee worth getting up for. Seasonal single origins, roasted in Dunedin every Monday and delivered to your door while they're sti…",
+        "tag": "div"
+      },
+      "comments": [
+        {
+          "author": "human",
+          "text": "make it three col",
+          "at": "2026-09-23T21:21:43.290Z"
+        }
+      ]
+    },
+    {
+      "id": "12dcf04f",
+      "status": "open",
+      "createdAt": "2026-09-23T21:21:55.064Z",
+      "updatedAt": "2026-09-23T21:21:55.064Z",
+      "anchor": {
+        "source": "src/components/FeatureCard.astro:17:5",
+        "sourceChain": [
+          "src/components/FeatureCard.astro",
+          "src/pages/index.astro",
+          "src/layouts/Base.astro"
+        ],
+        "selector": "body > main > section:nth-of-type(2) > div > div > article:nth-of-type(3) > div > h3",
+        "text": "Brew guides for every bag",
+        "tag": "h3"
+      },
+      "comments": [
+        {
+          "author": "human",
+          "text": "center",
+          "at": "2026-09-23T21:21:55.064Z"
+        }
+      ]
+    }
+  ]
+}

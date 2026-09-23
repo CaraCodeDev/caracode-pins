@@ -133,18 +133,20 @@ configuration option, since the spec says installing it is the only setup.
 
 ## Human check 2026-09-23
 
+All confirmed by Rich 2026-09-23 ("this all works as expected").
+
 Start the playground with `pnpm dev` in the repo root, open http://localhost:4358.
 
-- [ ] Click Pins in the Astro toolbar → a dark drawer opens on the right, reading "No pins on this page yet."
-- [ ] Pin mode on, move the mouse around the page → the outline follows the element under the cursor and isn't jumpy.
-- [ ] Click a feature card title, type a note, press ⌘Enter → it appears as pin 1 with a numbered marker on the card, and pin mode is still on for the next one.
-- [ ] Pin two more things, press Esc → pin mode ends; click a link → it navigates normally.
-- [ ] Scroll the page → markers stay on their elements.
-- [ ] Close the panel → nothing of carapin's left on the page.
-- [ ] In a Claude Code session in `playground/`, say "work the pins" → the changes are made, and the panel shows those pins in review with Claude's comment.
-- [ ] Reply to one of them → it goes back to open; "work the pins" again fixes just that one.
-- [ ] Mark a pin done → it disappears; "Show done" brings it back with the same number.
-- [ ] Drawer placement: default Push narrows the page so nothing is covered; switch to Right or Left, turn on pin mode → the drawer tucks into a tab and slides back when you click an element.
-- [ ] Pin something on the home page, click "Brew guides" in the nav → the panel switches to that page's pins (none yet) during the transition; go back → the home page pin and marker return.
-- [ ] Overall: does the drawer look and feel right for a pass of a dozen pins?
+- [x] Click Pins in the Astro toolbar → a dark drawer opens on the right, reading "No pins on this page yet."
+- [x] Pin mode on, move the mouse around the page → the outline follows the element under the cursor and isn't jumpy.
+- [x] Click a feature card title, type a note, press ⌘Enter → it appears as pin 1 with a numbered marker on the card, and pin mode is still on for the next one.
+- [x] Pin two more things, press Esc → pin mode ends; click a link → it navigates normally.
+- [x] Scroll the page → markers stay on their elements.
+- [x] Close the panel → nothing of carapin's left on the page.
+- [x] In a Claude Code session in `playground/`, say "work the pins" → the changes are made, and the panel shows those pins in review with Claude's comment.
+- [x] Reply to one of them → it goes back to open; "work the pins" again fixes just that one.
+- [x] Mark a pin done → it disappears; "Show done" brings it back with the same number.
+- [x] Drawer placement: default Push narrows the page so nothing is covered; switch to Right or Left, turn on pin mode → the drawer tucks into a tab and slides back when you click an element.
+- [x] Pin something on the home page, click "Brew guides" in the nav → the panel switches to that page's pins (none yet) during the transition; go back → the home page pin and marker return.
+- [x] Overall: does the drawer look and feel right for a pass of a dozen pins?
 

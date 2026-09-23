@@ -4,6 +4,15 @@
   "description": "Astro dev-toolbar app for pinning notes onto page elements in local dev, stored as JSON for Claude Code to act on.",
   "type": "module",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CaraCodeDev/caracode-pins.git",
+    "directory": "packages/pins"
+  },
+  "homepage": "https://github.com/CaraCodeDev/caracode-pins/tree/main/packages/pins#readme",
+  "bugs": {
+    "url": "https://github.com/CaraCodeDev/caracode-pins/issues"
+  },
   "author": "CaraCode",
   "keywords": [
     "astro-integration",

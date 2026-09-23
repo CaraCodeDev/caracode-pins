@@ -5,7 +5,7 @@
 
 # M2 — Pins, threads and the panel
 
-Status: **M2 shipped, incl. follow-ups Phase 4 (placement) and Phase 5 (view transitions); Rich's look-and-feel checks outstanding** · Last updated: 2026-09-23
+Status: **M2 shipped, incl. follow-ups Phase 4 (placement) and Phase 5 (view transitions); Rich's browser checks passed 2026-09-23** · Last updated: 2026-09-23
 
 **State detail:** M1 proved the round trip with a provisional file shape and a
 plain-text panel. M2 replaces both with the real thing: the pin file format,
