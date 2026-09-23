@@ -170,6 +170,18 @@ a {
   color: rgba(250, 245, 238, 0.85);
 }
 
+/* Inner-page heading band: dark like the hero, so the cream header reads on it */
+.page-head {
+  padding-block: 128px 64px;
+  background: var(--roast-dark);
+  color: var(--cream);
+}
+
+.page-head .section-lede {
+  margin-bottom: 0;
+  color: rgba(250, 245, 238, 0.85);
+}
+
 /* Features */
 .features {
   padding-block: 96px;

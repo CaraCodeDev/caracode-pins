@@ -77,7 +77,8 @@ export function writePlacement(p: Placement, storage: StorageGetter = defaultSto
  * Push mode's effect on the page: one <style> element in <head> that narrows the
  * root element. Nothing is set on `html` or `body` themselves, so removing the
  * element restores the page exactly. Fixed-position page elements still span the
- * viewport (accepted limitation).
+ * viewport (accepted limitation). `apply` is also how it's restored after a
+ * view-transition swap drops it (Phase 5).
  */
 export class PagePush {
   private style: HTMLStyleElement | null = null;
@@ -88,10 +89,11 @@ export class PagePush {
 
   apply(width: number): void {
     const css = `html { margin-right: ${width}px !important; width: auto !important; }`;
-    if (!this.style) {
-      this.style = document.createElement('style');
-      (document.head ?? document.documentElement).append(this.style);
-    }
+    this.style ??= document.createElement('style');
+    // A view-transition head swap (ClientRouter) removes styles the new page
+    // doesn't have, so put it back if it's gone. Re-appending an attached
+    // element is a no-op check, not a move.
+    if (!this.style.isConnected) (document.head ?? document.documentElement).append(this.style);
     if (this.style.textContent !== css) this.style.textContent = css;
   }
 

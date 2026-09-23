@@ -145,5 +145,6 @@ Start the playground with `pnpm dev` in the repo root, open http://localhost:435
 - [ ] Reply to one of them → it goes back to open; "work the pins" again fixes just that one.
 - [ ] Mark a pin done → it disappears; "Show done" brings it back with the same number.
 - [ ] Drawer placement: default Push narrows the page so nothing is covered; switch to Right or Left, turn on pin mode → the drawer tucks into a tab and slides back when you click an element.
+- [ ] Pin something on the home page, click "Brew guides" in the nav → the panel switches to that page's pins (none yet) during the transition; go back → the home page pin and marker return.
 - [ ] Overall: does the drawer look and feel right for a pass of a dozen pins?
 

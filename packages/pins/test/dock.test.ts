@@ -140,6 +140,19 @@ describe('PagePush', () => {
     expect(snapshot()).toEqual(before);
   });
 
+  it('restores its style element after a view-transition head swap drops it (Phase 5)', () => {
+    const before = snapshot();
+    const push = new PagePush();
+    push.apply(400);
+    document.head.querySelector('style')!.remove(); // what ClientRouter's swapHeadElements does
+    expect(document.head.querySelectorAll('style').length).toBe(0);
+    push.apply(400);
+    push.apply(400);
+    expect(document.head.querySelectorAll('style').length).toBe(1);
+    push.release();
+    expect(snapshot()).toEqual(before);
+  });
+
   it("leaves the page's own inline styles on html untouched", () => {
     html.setAttribute('style', 'margin-right: 7px; color: red');
     const before = snapshot();

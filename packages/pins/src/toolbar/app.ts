@@ -24,5 +24,14 @@ export default defineToolbarApp({
     server.on<PinsMessage>(EVENTS.pins, (msg) => panel.onPins(msg));
     server.on<ResultMessage>(EVENTS.result, (msg) => panel.onResult(msg));
     app.onToggled(({ state }) => panel.setOpen(state));
+
+    // Phase 5, view transitions (<ClientRouter />). Astro keeps the toolbar across
+    // a swap: it re-appends the same <astro-dev-toolbar> to the new <body> and
+    // never re-runs `init`, so this listener is added exactly once. after-swap
+    // fires once the new DOM is in and `location` is updated, inside the view
+    // transition, before the new page is shown (so push's <style> is back in
+    // time). Without ClientRouter the event never fires and each full page load
+    // runs `init` afresh.
+    document.addEventListener('astro:after-swap', () => panel.navigate(location.pathname));
   },
 });

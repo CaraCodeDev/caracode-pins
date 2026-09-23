@@ -88,11 +88,27 @@ export class PinMode {
       );
     }
 
-    // Page CSS, removed when pin mode ends (the only thing carapin ever puts in
-    // the page's own DOM, and only while pin mode is on).
+    // Page CSS, removed when pin mode ends (with push's <style>, the only things
+    // carapin puts in the page's own DOM, and only while the panel is open).
     this.cursorStyle = document.createElement('style');
     this.cursorStyle.textContent = '*, *::before, *::after { cursor: crosshair !important; }';
-    document.head.append(this.cursorStyle);
+    this.restoreStyle();
+  }
+
+  /**
+   * Phase 5: a view-transition swap replaces the page's <head> and <body>. The
+   * listeners are on `window`, so they survive untouched (never re-added); only
+   * the cursor <style> is dropped with the old head, and the hovered element
+   * belonged to the old page.
+   */
+  afterSwap(): void {
+    if (!this.on) return;
+    this.restoreStyle();
+    this.handlers.onHover(null);
+  }
+
+  private restoreStyle(): void {
+    if (this.cursorStyle && !this.cursorStyle.isConnected) (document.head ?? document.documentElement).append(this.cursorStyle);
   }
 
   disable(): void {

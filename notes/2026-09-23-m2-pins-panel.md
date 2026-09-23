@@ -5,7 +5,7 @@
 
 # M2 — Pins, threads and the panel
 
-Status: **M2 shipped; follow-up Phase 5 (view transitions) in progress** · Last updated: 2026-09-23
+Status: **M2 shipped, incl. follow-ups Phase 4 (placement) and Phase 5 (view transitions); Rich's look-and-feel checks outstanding** · Last updated: 2026-09-23
 
 **State detail:** M1 proved the round trip with a provisional file shape and a
 plain-text panel. M2 replaces both with the real thing: the pin file format,
@@ -245,7 +245,7 @@ covered; switch to `left` to reach it.
 
 **Watch-out:** a site using Astro view transitions (`ClientRouter`) may drop the push `<style>` on a head swap while the panel stays open. The playground doesn't use them; if a real site does, re-apply on `astro:after-swap`.
 
-### Phase 5 — View transitions  <!-- ☐ TODO · follow-up 2026-09-23 -->
+### Phase 5 — View transitions  <!-- ☑ DONE 2026-09-23 · follow-up -->
 
 Rich (2026-09-23): all his sites will use Astro view transitions (`<ClientRouter />`). Page changes
 then swap the DOM without a reload, so carapin must treat each swap as a new page.
@@ -269,9 +269,9 @@ then swap the DOM without a reload, so carapin must treat each swap as a new pag
 - Find out and record whether Astro's toolbar (and so the app) persists across a swap or is
   re-initialised; either is fine as long as the behaviour above holds and nothing is registered twice.
 
-- [ ] Playground: `ClientRouter` + second page.
-- [ ] Panel follows navigation per the decisions above.
-- [ ] Tests for any pure logic added.
+- [x] Playground: `ClientRouter` + second page.
+- [x] Panel follows navigation per the decisions above.
+- [x] Tests for any pure logic added.
 
 **Verify:**
 1. Typecheck, build, tests; prod grep clean (and the prod build has no carapin trace on either page).
@@ -285,6 +285,14 @@ then swap the DOM without a reload, so carapin must treat each swap as a new pag
    click on an element opens exactly one composer).
 6. Open a thread on `/`, navigate → back to the list for the new page.
 7. Remove `ClientRouter` temporarily → full-page navigation still correct; restore it.
+
+*Verified 2026-09-23:* orchestrator: typecheck clean, 130 tests pass; in the browser, set a window flag, opened Pins on `/`, clicked the nav link to `/brew-guides` → flag survived (no reload), panel re-pointed to `/brew-guides`, exactly one drawer (pane was 1024px wide, so push correctly fell back to overlay). Builder ran Verify 1–7 at 1440px with listener/send counters: each navigation showed only that page's pins and markers with one `list` request and zero new window listeners; push stayed on (html 1025px) and closing restored `html` exactly; pin mode survived back-navigation and one click after three navigations opened one composer; an open thread/composer closed to the list (composer note dropped, reply draft kept); without ClientRouter, full reloads behaved correctly.
+
+*Files:* `packages/pins/src/toolbar/{app.ts,panel.ts,dock.ts,pin-mode.ts,page-layer.ts}`, `packages/pins/test/{dock,pin-mode}.test.ts`, `playground/src/layouts/Base.astro`, `playground/src/pages/brew-guides.astro`, `playground/src/styles/global.css`.
+
+**Contract:** `app.ts` registers one `astro:after-swap` listener → `PinsPanel.navigate(location.pathname)` (`panel.ts:330`): re-points path/key/chip, drops pins, found elements and markers, closes thread/composer to the list, then `PinMode.afterSwap()` (cursor `<style>` restored, listeners untouched), `PageLayer.afterSwap()` (observers moved to the new `<body>`), `render()` → `applyPlacement()` (`PagePush.apply` re-appends its `<style>` if the head swap removed it), and re-lists if open. `after-swap` rather than `page-load`: it fires after `history` moves and inside the view-transition update, so push is back before the new snapshot. **Astro keeps the dev toolbar across swaps** (same element re-appended, app `init` runs once), so nothing registers twice. Results for a page already left only clean up.
+
+**Noted, not changed:** the pin file for `/brew-guides` records `"page": "/brew-guides/"` while the panel sends `/brew-guides` (existing page-key normalisation; same file, no behaviour impact).
 
 ## Exit verify (milestone M2)
 

@@ -83,6 +83,21 @@ export class PageLayer {
     this.setHover(null);
   }
 
+  /**
+   * Phase 5: a view-transition swap replaced the page's <body>. The observers
+   * are still watching the old one, so re-attach them (the window listeners
+   * stay), and forget the old page's hovered/outlined elements.
+   */
+  afterSwap(): void {
+    this.hovered = null;
+    this.outlined = null;
+    if (!this.session) return;
+    this.mutationObserver?.disconnect();
+    this.mutationObserver?.observe(document.body, { subtree: true, childList: true, attributes: true, characterData: true });
+    this.observeSizes();
+    this.schedule(true);
+  }
+
   /** The markers to show, in pin-number order. Rebuilds the dots. */
   setMarkers(markers: MarkerSpec[]): void {
     this.markers = markers;

@@ -76,6 +76,7 @@ const PLACEMENT_LABEL: Record<Placement, string> = {
 const FALLBACK_NOTE = `overlaying, window under ${PUSH_MIN_WIDTH}px wide`;
 
 export interface PanelOptions {
+  /** The page at load. Later pages arrive through `navigate()`. */
   path: string;
   send: (event: string, payload: unknown) => void;
   /** Close the toolbar app (the drawer's own close button). */
@@ -88,7 +89,10 @@ export class PinsPanel {
   readonly tab: HTMLButtonElement;
   readonly layer: PageLayer;
   private readonly pinMode: PinMode;
-  private readonly key: string | null;
+  /** The current page: set at load and again on every client-side navigation (Phase 5). */
+  private path: string;
+  private key: string | null;
+  private readonly pageChip: HTMLSpanElement;
 
   // --- Data -----------------------------------------------------------------
   private pins: Pin[] = [];
@@ -141,6 +145,7 @@ export class PinsPanel {
   private readonly saveBtn: HTMLButtonElement;
 
   constructor(private readonly opts: PanelOptions) {
+    this.path = opts.path;
     this.key = pageKey(opts.path);
 
     this.layer = new PageLayer({
@@ -172,11 +177,12 @@ export class PinsPanel {
       this.placementBtns.set(p, b);
       seg.append(b);
     }
+    this.pageChip = h('span', { class: 'cp-page', text: opts.path, attrs: { title: opts.path } });
     const head = h(
       'header',
       { class: 'cp-head' },
       h('span', { class: 'cp-title', text: 'Pins' }),
-      h('span', { class: 'cp-page', text: opts.path, attrs: { title: opts.path } }),
+      this.pageChip,
       h('span', { class: 'spacer' }),
       seg,
       this.pinModeBtn,
@@ -313,8 +319,50 @@ export class PinsPanel {
     }
   }
 
+  /**
+   * Phase 5: a client-side navigation (Astro's ClientRouter) swapped the page
+   * without a reload. Behave as if `path` had just loaded: its pins only, the
+   * old page's markers and elements dropped, placement re-applied. An open
+   * thread or composer belonged to the old page, so it closes back to the list
+   * (the composer's note is discarded; reply drafts are kept per pin). Pin mode
+   * and the placement setting carry over.
+   */
+  navigate(path: string): void {
+    this.saveReplyDraft();
+    this.path = path;
+    this.key = pageKey(path);
+    this.pageChip.textContent = path;
+    this.pageChip.title = path;
+
+    this.pins = [];
+    this.loaded = false;
+    this.lastGoodAt = null;
+    this.readError = null;
+    this.opError = null;
+    this.found = new Map();
+    this.markerSig = '';
+    this.markerEls = [];
+    this.layer.setMarkers([]);
+
+    this.view = 'list';
+    this.threadKey = null;
+    this.confirmingDelete = false;
+    this.composer = null;
+    this.composerRequest = null;
+    this.composerBox.value = '';
+    this.replyRequest = null;
+    this.replyBox.value = '';
+    this.expanded = false;
+
+    if (!this.key) this.setPinMode(false); // this page can't take pins
+    this.pinMode.afterSwap();
+    this.layer.afterSwap();
+    this.render(); // re-applies placement: restores push's <style> if the swap dropped it
+    if (this.isOpen) this.refresh();
+  }
+
   private refresh(): void {
-    if (this.key) this.opts.send(EVENTS.list, { path: this.opts.path });
+    if (this.key) this.opts.send(EVENTS.list, { path: this.path });
   }
 
   // --- Server messages --------------------------------------------------------
@@ -334,10 +382,16 @@ export class PinsPanel {
   }
 
   onResult(msg: ResultMessage): void {
-    if (msg.key !== this.key || !msg.requestId) return;
+    if (!msg.requestId) return;
     const p = this.pending.get(msg.requestId);
     if (!p) return; // another tab's request: results go to every client
     this.pending.delete(msg.requestId);
+    if (msg.key !== this.key) {
+      // Sent from a page we've since navigated away from. Only tidy up: a reply
+      // that was saved no longer needs its kept draft.
+      if (msg.ok && p.op === 'reply' && p.id && this.replyDrafts.get(p.id) === p.text) this.replyDrafts.delete(p.id);
+      return;
+    }
 
     if (msg.requestId === this.composerRequest) this.composerRequest = null;
     if (msg.requestId === this.replyRequest) this.replyRequest = null;
@@ -372,7 +426,7 @@ export class PinsPanel {
   private request(event: string, op: Operation, payload: Record<string, unknown>, extra: Omit<Pending, 'op'> = {}): string {
     const requestId = `cp-${Date.now().toString(36)}-${++this.seq}`;
     this.pending.set(requestId, { op, ...extra });
-    this.opts.send(event, { path: this.opts.path, ...payload, requestId });
+    this.opts.send(event, { path: this.path, ...payload, requestId });
     return requestId;
   }
 

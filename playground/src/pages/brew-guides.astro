@@ -1,0 +1,59 @@
+---
+import Base from '../layouts/Base.astro';
+import FeatureCard from '../components/FeatureCard.astro';
+
+const guides = [
+  {
+    title: 'Pour-over',
+    description:
+      '15 g of coffee to 250 g of water just off the boil. Bloom for 40 seconds, then pour slowly in circles and aim to finish by three minutes.',
+    image: '/images/feature-brew.svg',
+    imageAlt: 'A pour-over dripper above a glass carafe',
+    icon: '/images/icon-drop.svg',
+  },
+  {
+    title: 'Plunger',
+    description:
+      'A coarse grind, 30 g to 500 g of water. Stir after a minute, steep for four, then press gently and pour it all out straight away.',
+    image: '/images/feature-roast.svg',
+    imageAlt: 'A drum roaster turning a batch of beans',
+    icon: '/images/icon-flame.svg',
+  },
+  {
+    title: 'Espresso',
+    description:
+      '18 g in, about 36 g out in 28 to 32 seconds. Grind finer if it runs fast and sour, coarser if it drags and tastes bitter.',
+    image: '/images/feature-farm.svg',
+    imageAlt: 'Terraced coffee rows on a hillside farm',
+    icon: '/images/icon-leaf.svg',
+  },
+];
+---
+
+<Base
+  title="Brew guides | Fernhill Roasters"
+  description="Simple recipes for filter, plunger and espresso, dialled in by our roasters."
+>
+  <section class="page-head">
+    <div class="container">
+      <h1 class="section-title">Brew guides</h1>
+      <p class="section-lede">Three recipes to start from. Taste, then adjust one thing at a time.</p>
+    </div>
+  </section>
+
+  <section class="features" aria-label="Recipes">
+    <div class="container">
+      <div class="features__grid">
+        {guides.map((guide) => <FeatureCard {...guide} />)}
+      </div>
+    </div>
+  </section>
+
+  <section class="cta-band">
+    <div class="container cta-band__inner">
+      <h2 class="cta-band__title">Not sure where to start?</h2>
+      <p class="cta-band__text">Our house blend is forgiving on every brewer.</p>
+      <a class="button button--light" href="/subscribe">Try the house blend</a>
+    </div>
+  </section>
+</Base>
