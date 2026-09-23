@@ -5,7 +5,7 @@
 
 # M2 — Pins, threads and the panel
 
-Status: **M2 shipped, incl. follow-up Phase 4 (drawer placement); Rich's look-and-feel checks outstanding** · Last updated: 2026-09-23
+Status: **M2 shipped; follow-up Phase 5 (view transitions) in progress** · Last updated: 2026-09-23
 
 **State detail:** M1 proved the round trip with a provisional file shape and a
 plain-text panel. M2 replaces both with the real thing: the pin file format,
@@ -244,6 +244,47 @@ covered; switch to `left` to reach it.
 **Contract:** `src/toolbar/dock.ts` — `Placement` `push|right|left` (default `push`) in `localStorage` key `caracode-pins:placement` (try/catch → `push`); `effectivePlacement(setting, innerWidth)` (push below 1280 → overlay right, `fallback: true`); `shouldTuck`; `PagePush` narrows the page via one removable `<style>` in `<head>` (`html { margin-right: 400px !important; width: auto !important }`), never touching `html`/`body` attributes. `PinsPanel.applyPlacement()` (`panel.ts:470`) is the single sync point (page push, drawer `data-side|mode|tucked` + `inert`, tab, control, fallback note), run on render, resize, pin-mode change and open/close. A tab or marker click expands the drawer by hand. `PageLayer` takes `pageArea()` → `{left, right}`.
 
 **Watch-out:** a site using Astro view transitions (`ClientRouter`) may drop the push `<style>` on a head swap while the panel stays open. The playground doesn't use them; if a real site does, re-apply on `astro:after-swap`.
+
+### Phase 5 — View transitions  <!-- ☐ TODO · follow-up 2026-09-23 -->
+
+Rich (2026-09-23): all his sites will use Astro view transitions (`<ClientRouter />`). Page changes
+then swap the DOM without a reload, so carapin must treat each swap as a new page.
+
+**Decisions (locked 2026-09-23):**
+- **The playground uses `<ClientRouter />`** in `Base.astro` and gains a second page reachable from
+  the nav (e.g. `/brew-guides`, simple, with a heading, a few cards and a button), so every check
+  runs the way Rich's sites will.
+- **On every client-side navigation the panel behaves as if the new page had loaded:** re-lists
+  pins for the new `location.pathname` (the list, count and page chip show the new page's pins
+  only, Decision 11), drops the previous page's markers and re-finds against the new DOM, and
+  re-applies placement (the push `<style>` survives or is restored; nothing of carapin's is left
+  in the page when the panel is closed). Hook on Astro's view-transition lifecycle events
+  (`astro:after-swap` / `astro:page-load`); which is the builder's call from the current Astro 7 docs.
+- **An open thread or composer from the previous page is closed on navigation**, back to the list.
+  A half-typed composer note is discarded (it belongs to an element on the old page). Reply drafts
+  are kept per pin as today.
+- **Pin mode stays on across navigation if it was on.** Its listeners live on `window`, so they
+  must neither duplicate nor go missing after a swap.
+- **Also works without `ClientRouter`** (full page loads). No regression for sites that don't use it.
+- Find out and record whether Astro's toolbar (and so the app) persists across a swap or is
+  re-initialised; either is fine as long as the behaviour above holds and nothing is registered twice.
+
+- [ ] Playground: `ClientRouter` + second page.
+- [ ] Panel follows navigation per the decisions above.
+- [ ] Tests for any pure logic added.
+
+**Verify:**
+1. Typecheck, build, tests; prod grep clean (and the prod build has no carapin trace on either page).
+2. On `/`, pin something. Navigate to `/brew-guides` via the nav link (a view transition, no reload:
+   check `performance.getEntriesByType('navigation')` / a window flag survives). → Panel shows
+   0 pins for `/brew-guides`, no markers from `/`. Pin something there → `.carapin/brew-guides.json`.
+3. Navigate back → `/`'s pin and marker return; `/brew-guides`' marker gone.
+4. Push mode: after each navigation the page is still narrowed while the panel is open; closing the
+   panel after a navigation restores it exactly.
+5. Pin mode on, navigate with the back button → pin mode still on, one set of listeners (a single
+   click on an element opens exactly one composer).
+6. Open a thread on `/`, navigate → back to the list for the new page.
+7. Remove `ClientRouter` temporarily → full-page navigation still correct; restore it.
 
 ## Exit verify (milestone M2)
 
