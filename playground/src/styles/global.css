@@ -1,0 +1,272 @@
+:root {
+  --ink: #2a1d16;
+  --ink-soft: #5c4a3f;
+  --cream: #faf5ee;
+  --paper: #ffffff;
+  --roast: #6b3a23;
+  --roast-dark: #4a2616;
+  --crema: #d9a066;
+  --radius: 14px;
+  --shadow: 0 1px 2px rgba(42, 29, 22, 0.06), 0 8px 24px rgba(42, 29, 22, 0.08);
+  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  color: var(--ink);
+  background: var(--cream);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  line-height: 1.6;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+a {
+  color: inherit;
+}
+
+.container {
+  width: min(1120px, 100% - 40px);
+  margin-inline: auto;
+}
+
+/* Header */
+.site-header {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 10;
+  color: var(--cream);
+}
+
+.site-header__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-block: 20px;
+  gap: 16px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+}
+
+.site-nav {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  font-size: 0.95rem;
+}
+
+.site-nav a {
+  text-decoration: none;
+  opacity: 0.9;
+}
+
+.site-nav a:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+.site-nav__cta {
+  padding: 8px 16px;
+  border: 1px solid rgba(250, 245, 238, 0.6);
+  border-radius: 999px;
+}
+
+@media (max-width: 720px) {
+  .site-nav a:not(.site-nav__cta) {
+    display: none;
+  }
+}
+
+/* Buttons */
+.button {
+  display: inline-block;
+  padding: 14px 28px;
+  border-radius: 999px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.button:hover {
+  transform: translateY(-1px);
+}
+
+.button--primary {
+  background: var(--crema);
+  color: var(--ink);
+}
+
+.button--primary:hover {
+  background: #e4b37f;
+}
+
+.button--light {
+  background: var(--cream);
+  color: var(--roast-dark);
+}
+
+/* Hero */
+.hero {
+  position: relative;
+  min-height: min(88vh, 760px);
+  display: grid;
+  align-items: center;
+  overflow: hidden;
+  color: var(--cream);
+  background: var(--roast-dark);
+}
+
+.hero__media {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hero__content {
+  position: relative;
+  padding-block: 140px 96px;
+  max-width: 1120px;
+}
+
+.hero__eyebrow {
+  margin: 0 0 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--crema);
+}
+
+.hero__title {
+  margin: 0;
+  max-width: 14ch;
+  font-size: clamp(2.6rem, 6vw, 4.5rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+.hero__subtitle {
+  margin: 20px 0 32px;
+  max-width: 46ch;
+  font-size: 1.15rem;
+  color: rgba(250, 245, 238, 0.85);
+}
+
+/* Features */
+.features {
+  padding-block: 96px;
+}
+
+.section-title {
+  margin: 0;
+  font-size: clamp(1.8rem, 3.5vw, 2.4rem);
+  letter-spacing: -0.01em;
+}
+
+.section-lede {
+  margin: 8px 0 40px;
+  color: var(--ink-soft);
+  font-size: 1.1rem;
+}
+
+.features__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 28px;
+}
+
+.feature-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--paper);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.feature-card__image {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+}
+
+.feature-card__body {
+  padding: 24px;
+}
+
+.feature-card__icon {
+  width: 40px;
+  height: 40px;
+  margin-top: -44px;
+  margin-bottom: 12px;
+  padding: 8px;
+  background: var(--paper);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+}
+
+.feature-card__title {
+  margin: 0 0 8px;
+  font-size: 1.2rem;
+}
+
+.feature-card__text {
+  margin: 0;
+  color: var(--ink-soft);
+}
+
+/* CTA band */
+.cta-band {
+  padding-block: 88px;
+  color: var(--cream);
+  background:
+    radial-gradient(circle at 15% 20%, rgba(217, 160, 102, 0.35), transparent 45%),
+    radial-gradient(circle at 85% 80%, rgba(217, 160, 102, 0.25), transparent 40%),
+    var(--roast);
+}
+
+.cta-band__inner {
+  text-align: center;
+}
+
+.cta-band__title {
+  margin: 0;
+  font-size: clamp(1.9rem, 4vw, 2.8rem);
+  letter-spacing: -0.01em;
+}
+
+.cta-band__text {
+  margin: 12px auto 32px;
+  max-width: 44ch;
+  font-size: 1.1rem;
+  color: rgba(250, 245, 238, 0.85);
+}
+
+/* Footer */
+.site-footer {
+  padding-block: 32px;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+
+.site-footer p {
+  margin: 0;
+}

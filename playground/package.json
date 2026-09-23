@@ -1,0 +1,14 @@
+{
+  "name": "playground",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev --ignore-lock",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "@caracode/pins": "workspace:*",
+    "astro": "^7.3.4"
+  }
+}

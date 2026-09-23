@@ -1,0 +1,67 @@
+---
+import Base from '../layouts/Base.astro';
+import FeatureCard from '../components/FeatureCard.astro';
+
+const features = [
+  {
+    title: 'Roasted the week you order',
+    description:
+      'Every bag is roasted on Monday and on its way by Tuesday, so it arrives at its best rather than months after.',
+    image: '/images/feature-roast.svg',
+    imageAlt: 'A drum roaster turning a batch of beans',
+    icon: '/images/icon-flame.svg',
+  },
+  {
+    title: 'Traded directly with growers',
+    description:
+      'We buy from the same six farms each season and pay well above fair-trade minimums for the lots we love.',
+    image: '/images/feature-farm.svg',
+    imageAlt: 'Terraced coffee rows on a hillside farm',
+    icon: '/images/icon-leaf.svg',
+  },
+  {
+    title: 'Brew guides for every bag',
+    description:
+      'Each coffee ships with a recipe card for filter, espresso and plunger, dialled in by our roasters.',
+    image: '/images/feature-brew.svg',
+    imageAlt: 'A pour-over dripper above a glass carafe',
+    icon: '/images/icon-drop.svg',
+  },
+];
+---
+
+<Base
+  title="Fernhill Roasters | Fresh specialty coffee, delivered"
+  description="Small-batch specialty coffee roasted in Dunedin and delivered to your door."
+>
+  <section class="hero">
+    <img class="hero__media" src="/images/hero.svg" alt="" width="1600" height="900" />
+    <div class="container hero__content">
+      <p class="hero__eyebrow">Small-batch specialty coffee</p>
+      <h1 class="hero__title">Coffee worth getting up for.</h1>
+      <p class="hero__subtitle">
+        Seasonal single origins, roasted in Dunedin every Monday and delivered to your door
+        while they're still at their peak.
+      </p>
+      <a class="button button--primary" href="/subscribe">Start a subscription</a>
+    </div>
+  </section>
+
+  <section class="features" aria-labelledby="features-heading">
+    <div class="container">
+      <h2 id="features-heading" class="section-title">Why people stay with us</h2>
+      <p class="section-lede">Three things we won't compromise on, bag after bag.</p>
+      <div class="features__grid">
+        {features.map((feature) => <FeatureCard {...feature} />)}
+      </div>
+    </div>
+  </section>
+
+  <section class="cta-band">
+    <div class="container cta-band__inner">
+      <h2 class="cta-band__title">Your first bag is on us.</h2>
+      <p class="cta-band__text">Pick a roast, choose how often, and skip or cancel any time.</p>
+      <a class="button button--light" href="/subscribe?offer=first-bag-free">Claim your free bag</a>
+    </div>
+  </section>
+</Base>

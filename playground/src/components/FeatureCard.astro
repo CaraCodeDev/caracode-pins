@@ -1,0 +1,20 @@
+---
+interface Props {
+  title: string;
+  description: string;
+  image: string;
+  imageAlt: string;
+  icon: string;
+}
+
+const { title, description, image, imageAlt, icon } = Astro.props;
+---
+
+<article class="feature-card">
+  <img class="feature-card__image" src={image} alt={imageAlt} width="480" height="300" loading="lazy" />
+  <div class="feature-card__body">
+    <img class="feature-card__icon" src={icon} alt="" width="40" height="40" />
+    <h3 class="feature-card__title">{title}</h3>
+    <p class="feature-card__text">{description}</p>
+  </div>
+</article>

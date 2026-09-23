@@ -1,0 +1,45 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description: string;
+}
+
+const { title, description } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{title}</title>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container site-header__inner">
+        <a class="brand" href="/">
+          <img src="/images/logo.svg" alt="" width="28" height="28" />
+          <span>Fernhill Roasters</span>
+        </a>
+        <nav class="site-nav" aria-label="Main">
+          <a href="/coffee">Coffee</a>
+          <a href="/brew-guides">Brew guides</a>
+          <a href="/wholesale">Wholesale</a>
+          <a class="site-nav__cta" href="/subscribe">Subscribe</a>
+        </nav>
+      </div>
+    </header>
+    <main>
+      <slot />
+    </main>
+    <footer class="site-footer">
+      <div class="container">
+        <p>&copy; 2026 Fernhill Roasters, Dunedin. Roasted Mondays, shipped Tuesdays.</p>
+      </div>
+    </footer>
+  </body>
+</html>

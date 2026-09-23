@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2a1a12"/>
+      <stop offset="0.55" stop-color="#4a2616"/>
+      <stop offset="1" stop-color="#7a4527"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.78" cy="0.45" r="0.5">
+      <stop offset="0" stop-color="#d9a066" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#d9a066" stop-opacity="0"/>
+    </radialGradient>
+    <g id="bean">
+      <ellipse rx="34" ry="48" fill="#5a2f1b"/>
+      <path d="M-6 -44 C 14 -14, -14 14, 6 44" stroke="#2a1a12" stroke-width="6" fill="none" stroke-linecap="round"/>
+    </g>
+  </defs>
+  <rect width="1600" height="900" fill="url(#bg)"/>
+  <rect width="1600" height="900" fill="url(#glow)"/>
+  <g opacity="0.9">
+    <circle cx="1240" cy="430" r="230" fill="#f3e7d8"/>
+    <circle cx="1240" cy="430" r="190" fill="#3b2014"/>
+    <circle cx="1240" cy="430" r="150" fill="#6b3a23"/>
+    <ellipse cx="1200" cy="390" rx="70" ry="28" fill="#d9a066" opacity="0.55"/>
+  </g>
+  <use href="#bean" transform="translate(980 180) rotate(30)"/>
+  <use href="#bean" transform="translate(1480 180) rotate(-20)"/>
+  <use href="#bean" transform="translate(1500 720) rotate(60)"/>
+  <use href="#bean" transform="translate(1030 740) rotate(-40)"/>
+  <use href="#bean" transform="translate(880 520) rotate(10) scale(0.7)"/>
+  <rect width="1600" height="900" fill="#1a0f0a" opacity="0.25"/>
+</svg>
