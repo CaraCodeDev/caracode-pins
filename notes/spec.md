@@ -21,10 +21,8 @@ edits source code and never runs outside `astro dev`.
 - **Nature:** personal dev tool, possibly published. Right-sized for one person
   on localhost: no accounts, no server, no sync, no configuration beyond
   installing it.
-- **Status:** Spec in progress · settled: Astro only, pin lifecycle, pins-only
-  writes, free-text pins, comment threads with reply-reopens, toolbar-panel UI,
-  component-by-default, package name · open: screenshots · next: Rich signs off,
-  then draft the implementation plan · 2026-09-23.
+- **Status:** Spec signed off 2026-09-23. Implementation plan drafted in
+  `notes/implementation-plan.md`; next: `/spec-milestone 0`.
 
 ---
 
@@ -217,7 +215,7 @@ one-line note but cramped once pins have threads.
   every Astro project, so there's no widget to inject or server to run.
 - **Dev-server side via the integration's `astro:server:setup` hook** — receives
   pin writes from the toolbar and writes the files.
-- **pnpm workspace:** `packages/carapin` (the published package) + `playground/`
+- **pnpm workspace:** `packages/pins` (published as `@caracode/pins`) + `playground/`
   (an Astro site with a hero, features grid and CTA to test against).
 
 ### Why not Vivid
@@ -240,8 +238,8 @@ repo, next to the code it's about.
   product one.
 - **Publishing.** `@caracode/pins` is the name; confirm the scope is Rich's on
   npm before publishing.
-- **Screenshots.** A cropped screenshot per pin would help Claude, but costs
-  complexity. Lean: not in v1, since Claude can open the page itself.
+- **Screenshots: not in v1** (settled). Claude can open the page itself, and
+  screenshots add real complexity.
 - **Verify at build time:** the current Dev Toolbar App API (client ↔ server
   messaging), and that the `data-astro-source-*` attributes still exist and are
   present on elements inside components.
