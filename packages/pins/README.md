@@ -6,13 +6,49 @@ It only runs in local dev. It never edits your source code, and it adds nothing 
 
 ## Install
 
-Requires Astro 7 or later.
+Requires Astro 7 or later and Node 22.12 or later.
+
+### With `astro add`
+
+From your site's folder, run the command for your package manager. It installs the package and adds it to your Astro config in one step.
+
+```bash
+pnpm astro add @caracode/pins
+```
+
+```bash
+npx astro add @caracode/pins
+```
+
+```bash
+yarn astro add @caracode/pins
+```
+
+```bash
+bunx astro add @caracode/pins
+```
+
+### By hand
+
+Install it as a dev dependency:
 
 ```bash
 pnpm add -D @caracode/pins
 ```
 
-Add the integration to `astro.config.mjs`:
+```bash
+npm install -D @caracode/pins
+```
+
+```bash
+yarn add -D @caracode/pins
+```
+
+```bash
+bun add -d @caracode/pins
+```
+
+Then add the integration to `astro.config.mjs`:
 
 ```js
 import { defineConfig } from 'astro/config';
@@ -23,13 +59,39 @@ export default defineConfig({
 });
 ```
 
-There are no options. Start the dev server as usual:
+There are no options.
+
+### Check it's working
+
+Start the dev server as usual:
 
 ```bash
 pnpm astro dev
 ```
 
-A Pins button appears in the Astro dev toolbar at the bottom of the page.
+A Pins button (a map pin icon) appears in the Astro dev toolbar at the bottom of the page. The first start also writes the Claude Code skill to `.claude/skills/pins/SKILL.md`, and the terminal says so.
+
+### Updating
+
+```bash
+pnpm up @caracode/pins
+```
+
+The skill updates itself on the next `astro dev` start.
+
+### Removing
+
+Remove `pins()` from `astro.config.mjs`, then uninstall the package:
+
+```bash
+pnpm remove @caracode/pins
+```
+
+Delete `.carapin/` and `.claude/skills/pins/` too if you don't want to keep your pins or the skill.
+
+## Using it with Claude Code
+
+Open Claude Code in your site's folder and say "work the pins", or type `/pins`. Other things it understands: "check the pins", "what's pinned", "what content fields did I pin?". The skill it uses is written into your repo on dev start, so it works in any session without setup.
 
 ## How a pass works
 
@@ -42,6 +104,19 @@ A Pins button appears in the Astro dev toolbar at the bottom of the page.
 Each pin moves through three states: `open`, `review` and `done`. Claude never marks a pin done. Done pins are hidden in the panel unless you turn them on.
 
 A pin can also describe content rather than a change, for example "image or video, optional CTA with a URL". This is useful when you're deciding what a CMS should make editable. Claude recognises these notes from the wording, or from a `"label": "content"` field you add to the pin in the file. It skips them when working the pins and lists them when you ask what content fields you pinned.
+
+## The panel
+
+The panel shows the current page's pins. A switch in its header sets where it sits, and your browser remembers the choice:
+
+- **Push** (default): the page narrows to make room, like docked devtools, so nothing is covered. If the window is narrower than 1280px, it overlays on the right instead and says so.
+- **Right** or **Left**: the panel sits over the page. While pin mode is on, it tucks into a tab at the edge so you can click anything, and slides back when you pick an element.
+
+Keyboard: ⌘Enter (Ctrl+Enter on Windows and Linux) saves a note or reply. Esc cancels the note you're writing, then leaves pin mode.
+
+Numbered markers show where each pin sits, but only while the panel is open. If an element has been removed or changed so much that the pin can't find it, the pin is marked lost instead of attaching to the wrong element.
+
+Sites using Astro view transitions (`<ClientRouter />`) work too: the panel follows you from page to page.
 
 ## What it writes to your repo
 
