@@ -119,6 +119,8 @@ reopens, and the next "work the pins" fixes it.
 **Exit:** a real Astro site installs `@caracode/pins` from npm, and Rich does
 one full pass on it: pins placed, worked by Claude, reviewed and marked done.
 
+*Milestone doc:* `notes/2026-09-23-m4-publish.md` (Phase 1 publish prep ☑ 2026-09-23; publish and real-site pass are Rich's)
+
 ---
 
 ## Deliberately not in any milestone
@@ -126,3 +128,21 @@ one full pass on it: pins placed, worked by Claude, reviewed and marked done.
 Everything in Spec → "Scope discipline / Later": other frameworks, screenshots,
 a cross-page pin list, a CMS helper. Also not planned: any setting or
 configuration option, since the spec says installing it is the only setup.
+
+---
+
+## Human check 2026-09-23
+
+Start the playground with `pnpm dev` in the repo root, open http://localhost:4358.
+
+- [ ] Click Pins in the Astro toolbar → a dark drawer opens on the right, reading "No pins on this page yet."
+- [ ] Pin mode on, move the mouse around the page → the outline follows the element under the cursor and isn't jumpy.
+- [ ] Click a feature card title, type a note, press ⌘Enter → it appears as pin 1 with a numbered marker on the card, and pin mode is still on for the next one.
+- [ ] Pin two more things, press Esc → pin mode ends; click a link → it navigates normally.
+- [ ] Scroll the page → markers stay on their elements.
+- [ ] Close the panel → nothing of carapin's left on the page.
+- [ ] In a Claude Code session in `playground/`, say "work the pins" → the changes are made, and the panel shows those pins in review with Claude's comment.
+- [ ] Reply to one of them → it goes back to open; "work the pins" again fixes just that one.
+- [ ] Mark a pin done → it disappears; "Show done" brings it back with the same number.
+- [ ] Overall: does the drawer look and feel right for a pass of a dozen pins?
+

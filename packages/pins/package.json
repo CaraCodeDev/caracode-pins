@@ -1,14 +1,22 @@
 {
   "name": "@caracode/pins",
-  "version": "0.0.0",
-  "description": "Astro dev-toolbar app for pinning notes onto elements in local dev.",
+  "version": "0.1.0",
+  "description": "Astro dev-toolbar app for pinning notes onto page elements in local dev, stored as JSON for Claude Code to act on.",
   "type": "module",
   "license": "MIT",
+  "author": "CaraCode",
   "keywords": [
     "astro-integration",
     "astro",
-    "dev-toolbar"
+    "withastro",
+    "dev-toolbar",
+    "claude",
+    "claude-code",
+    "annotations"
   ],
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -21,16 +29,22 @@
   },
   "files": [
     "dist",
-    "skill"
+    "!dist/**/*.map",
+    "skill/SKILL.md"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "dev": "tsc -p tsconfig.json --watch --preserveWatchOutput",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "prepack": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" && pnpm run build"
   },
   "peerDependencies": {
     "astro": "^7.0.0"
+  },
+  "dependencies": {
+    "@astrojs/compiler-rs": "^0.4.1",
+    "magic-string": "^1.4.1"
   },
   "devDependencies": {
     "@types/node": "^22.20.4",
@@ -38,9 +52,5 @@
     "happy-dom": "^20.14.5",
     "typescript": "^7.0.2",
     "vitest": "^5.0.1"
-  },
-  "dependencies": {
-    "@astrojs/compiler-rs": "^0.4.1",
-    "magic-string": "^1.4.1"
   }
 }
