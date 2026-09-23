@@ -132,7 +132,7 @@ the instruction.
 
 - **Pin** — belongs to one page. Carries: optional label, status, where the
   element is (see "Anchoring"), created/updated times, and its comments.
-- **Comment** — belongs to a pin, in order. Carries: author (`rich` or `claude`),
+- **Comment** — belongs to a pin, in order. Carries: author (`human` or `claude`; the spec first said `rich`, changed in M2 for a published package),
   text, time. The first comment is the original note; Claude's "what I changed"
   note is a comment too.
 - **Page** — a URL path in the site. Owns a list of pins. One JSON file per page.

@@ -87,6 +87,8 @@ a pin in the JSON to status `review` with a `claude` comment: the panel shows it
 live, and replying moves it back to open. Change the page's markup so one pin's
 element disappears, and it shows as lost.
 
+*Milestone doc:* `notes/2026-09-23-m2-pins-panel.md`
+
 ## M3 — The Claude skill  <!-- ☐ TODO / ☑ DONE <date> -->
 
 - A skill shipped in the package that explains the file format and the
