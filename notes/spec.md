@@ -56,6 +56,8 @@ and hand the pile to Claude.
 
 - **Editing source code.** carapin only writes pin files. Claude makes the
   changes. (Settled: keeps a clean line between what's recorded and what changed.)
+  The one other file it writes is its Claude skill, installed into the site's
+  `.claude/skills/pins/` (tooling, not site source; never over a user-edited copy). Added in M3.
 - **Frameworks other than Astro.** Next.js, SvelteKit etc. would each need their
   own way of finding elements and their own toolbar. Not v1.
 - **Generating CMS schemas.** carapin records what content Rich wants where. It
