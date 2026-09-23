@@ -1,7 +1,7 @@
 import type { Anchor } from '../types.js';
 
 /** Must match `SOURCE_ATTR` in ../source-attr.ts (kept separate: that file imports the compiler). */
-const SOURCE_ATTR = 'data-pins-src';
+export const SOURCE_ATTR = 'data-pins-src';
 const TEXT_MAX = 160;
 
 /** Everything a pin records about the clicked element (Core framing, Decision 5). */

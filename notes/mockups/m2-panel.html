@@ -1,0 +1,933 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>carapin — M2 Pins panel mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap" rel="stylesheet">
+<style>
+/* =====================================================================
+   carapin design tokens  (prefix: --cp-)
+   Lift this block as-is into the toolbar app's stylesheet.
+   ===================================================================== */
+:root {
+  /* Spacing scale (px) */
+  --cp-space-1: 2px;
+  --cp-space-2: 4px;
+  --cp-space-3: 6px;
+  --cp-space-4: 8px;
+  --cp-space-5: 12px;
+  --cp-space-6: 16px;
+  --cp-space-7: 20px;
+  --cp-space-8: 24px;
+  --cp-space-9: 32px;
+
+  /* Type */
+  --cp-font-ui: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --cp-font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --cp-text-xs: 11px;   /* meta, mono paths, hints */
+  --cp-text-sm: 12px;   /* secondary text, chips */
+  --cp-text-md: 13px;   /* body: list rows, comments, inputs */
+  --cp-text-lg: 14px;   /* panel title, thread headline */
+  --cp-leading-tight: 1.25;
+  --cp-leading-body: 1.45;
+  --cp-tracking-caps: 0.04em;
+
+  /* Surfaces (cool charcoal; sits next to Astro's #13151a without matching it) */
+  --cp-bg-0: #0e1014;   /* drawer base */
+  --cp-bg-1: #14171d;   /* header / footer bars, comment cards */
+  --cp-bg-2: #1b1f27;   /* hover row, input background */
+  --cp-bg-3: #232833;   /* pressed row, chip fill */
+  --cp-line-1: #21252e; /* hairline dividers */
+  --cp-line-2: #2f3541; /* input borders, button borders */
+  --cp-line-3: #414958; /* hover borders */
+
+  /* Text */
+  --cp-fg-0: #e9ebf0;   /* primary */
+  --cp-fg-1: #a3a9b7;   /* secondary */
+  --cp-fg-2: #6c7386;   /* tertiary / placeholders / hints */
+  --cp-fg-inverse: #0e1014;
+
+  /* Interaction */
+  --cp-accent: #8ab4f8;           /* focus ring, links, selected element outline */
+  --cp-accent-soft: rgba(138,180,248,.16);
+  --cp-focus-ring: 0 0 0 2px var(--cp-bg-0), 0 0 0 4px var(--cp-accent);
+
+  /* Status — each has a solid, a soft wash, and a text tone */
+  --cp-open: #6aa5f7;
+  --cp-open-soft: rgba(106,165,247,.14);
+  --cp-open-text: #a9c8fb;
+
+  --cp-review: #f5b84a;           /* the only warm colour in the panel: draws the eye */
+  --cp-review-soft: rgba(245,184,74,.14);
+  --cp-review-text: #f7cf85;
+  --cp-review-glow: 0 0 0 3px rgba(245,184,74,.28);
+
+  --cp-done: #57c48a;
+  --cp-done-soft: rgba(87,196,138,.12);
+  --cp-done-text: #8fdcb2;
+
+  --cp-lost: #6c7386;             /* same as fg-2: it reads as "greyed out" */
+  --cp-lost-soft: rgba(108,115,134,.12);
+
+  --cp-danger: #f07178;
+  --cp-danger-soft: rgba(240,113,120,.14);
+
+  /* Radii */
+  --cp-radius-1: 3px;   /* chips, tiny badges */
+  --cp-radius-2: 6px;   /* buttons, inputs, rows */
+  --cp-radius-3: 10px;  /* cards, banners */
+  --cp-radius-full: 999px;
+
+  /* Shadows */
+  --cp-shadow-drawer: -12px 0 32px rgba(0,0,0,.35);
+  --cp-shadow-marker: 0 1px 2px rgba(0,0,0,.5), 0 0 0 2px rgba(255,255,255,.85);
+
+  /* Layout */
+  --cp-drawer-width: 400px;
+  --cp-marker-size: 20px;
+  --cp-z-markers: 2147483000;   /* above the page, below the toolbar */
+  --cp-z-drawer: 2147483100;
+}
+
+/* =====================================================================
+   Stand-in page: Fernhill Roasters (not part of the product)
+   ===================================================================== */
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  font-family: "Inter", system-ui, sans-serif;
+  color: #2b2118;
+  background: #f6f1ea;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+.site { padding-bottom: 120px; }
+.site-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 48px; max-width: 1180px; margin: 0 auto;
+}
+.brand { display: flex; align-items: baseline; gap: 10px; }
+.brand-name { font-family: "Fraunces", Georgia, serif; font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
+.brand-tag { font-size: 12px; color: #8a7562; }
+.site-nav a { color: #5a4a3c; text-decoration: none; margin-left: 24px; font-size: 14px; }
+
+.hero {
+  max-width: 1180px; margin: 24px auto 0; padding: 72px 48px 64px;
+  display: grid; grid-template-columns: 1.15fr 1fr; gap: 48px; align-items: center;
+}
+.hero h1 {
+  font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: 56px; line-height: 1.02;
+  letter-spacing: -0.02em; margin: 0 0 20px;
+}
+.hero p { font-size: 18px; line-height: 1.55; color: #5a4a3c; margin: 0 0 28px; max-width: 46ch; }
+.hero-actions { display: flex; gap: 12px; }
+.btn-site {
+  display: inline-block; padding: 12px 20px; border-radius: 8px; font-size: 14px; font-weight: 500;
+  text-decoration: none; border: 1px solid transparent;
+}
+.btn-site.primary { background: #2b2118; color: #fff; }
+.btn-site.ghost { border-color: #d8ccbf; color: #2b2118; }
+.hero-art {
+  aspect-ratio: 4/3; border-radius: 16px;
+  background:
+    radial-gradient(120% 90% at 30% 20%, #c58b5a 0%, transparent 55%),
+    radial-gradient(90% 90% at 80% 90%, #6b3f2a 0%, transparent 60%),
+    #3d2519;
+  position: relative;
+}
+.hero-art::after {
+  content: ""; position: absolute; inset: 22% 30%; border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #f3d9b8, #a7613a 60%, #4b2b1c);
+  box-shadow: 0 30px 60px rgba(0,0,0,.35);
+}
+
+.features { max-width: 1180px; margin: 0 auto; padding: 24px 48px 72px; }
+.features-head { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: #8a7562; margin-bottom: 20px; }
+.cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.card {
+  background: #fff; border: 1px solid #e6ddd2; border-radius: 14px; padding: 28px 26px;
+}
+.card .icon { width: 36px; height: 36px; border-radius: 10px; background: #efe4d6; margin-bottom: 20px; }
+.card h3 { font-family: "Fraunces", Georgia, serif; font-weight: 600; font-size: 20px; margin: 0 0 10px; letter-spacing: -0.01em; }
+.card p { margin: 0; color: #5a4a3c; line-height: 1.55; font-size: 15px; }
+
+.cta-band {
+  max-width: 1084px; margin: 0 auto; padding: 48px 56px; border-radius: 20px;
+  background: #2b2118; color: #f6f1ea; display: flex; align-items: center; justify-content: space-between; gap: 32px;
+}
+.cta-band h2 { font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: 30px; margin: 0 0 6px; letter-spacing: -0.01em; }
+.cta-band p { margin: 0; color: #c9b9a6; }
+.cta-band .btn-site.primary { background: #4169e1; color: #fff; white-space: nowrap; }
+
+/* Astro's dev toolbar pill — a hint only, not a reproduction */
+.astro-pill {
+  position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%);
+  height: 40px; padding: 0 8px; border-radius: 999px;
+  background: #13151a; border: 1px solid rgba(255,255,255,.12);
+  box-shadow: 0 0 0 1px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+  display: flex; align-items: center; gap: 4px; z-index: 2147483200;
+}
+.astro-pill .ico {
+  width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; color: #b7bcc6;
+}
+.astro-pill .ico svg { width: 16px; height: 16px; }
+.astro-pill .ico.active { background: rgba(255,255,255,.1); color: #fff; }
+.astro-pill .sep { width: 1px; height: 18px; background: rgba(255,255,255,.14); margin: 0 4px; }
+
+/* Page elements that get pinned need a positioning context for their marker */
+.pinnable { position: relative; }
+
+/* =====================================================================
+   carapin: markers on the page
+   ===================================================================== */
+.cp-marker {
+  position: absolute; top: -10px; left: -10px;
+  width: var(--cp-marker-size); height: var(--cp-marker-size);
+  border-radius: var(--cp-radius-full);
+  font: 500 11px/1 var(--cp-font-mono);
+  display: grid; place-items: center;
+  cursor: pointer; user-select: none;
+  color: var(--cp-fg-inverse);
+  box-shadow: var(--cp-shadow-marker);
+  z-index: var(--cp-z-markers);
+  pointer-events: auto;              /* only the dot takes clicks, never a layer around it */
+  transition: transform .08s ease;
+  display: none;                     /* switched on per mockup state */
+}
+.cp-marker:hover { transform: scale(1.12); }
+.cp-marker:active { transform: scale(1.0); }
+.cp-marker:focus-visible { outline: none; box-shadow: var(--cp-shadow-marker), var(--cp-focus-ring); }
+.cp-marker[data-status="open"]   { background: var(--cp-open); }
+.cp-marker[data-status="review"] { background: var(--cp-review); box-shadow: var(--cp-shadow-marker), var(--cp-review-glow); }
+.cp-marker[data-status="done"]   { background: #fff; color: var(--cp-done); box-shadow: 0 1px 2px rgba(0,0,0,.4), inset 0 0 0 2px var(--cp-done); }
+.cp-marker.is-selected { box-shadow: var(--cp-shadow-marker), 0 0 0 3px var(--cp-accent); }
+
+/* The selected pin's element, and the pin-mode hover target */
+.cp-element-selected { outline: 2px solid var(--cp-accent); outline-offset: 3px; border-radius: 4px; }
+.cp-element-hover { outline: 2px dashed var(--cp-accent); outline-offset: 3px; border-radius: 4px; cursor: crosshair; }
+.cp-hover-label {
+  position: absolute; left: 0; top: 100%; margin-top: 8px;
+  padding: 4px 8px; border-radius: var(--cp-radius-2);
+  background: var(--cp-bg-1); color: var(--cp-fg-1);
+  font: 400 var(--cp-text-xs)/1.3 var(--cp-font-mono);
+  border: 1px solid var(--cp-line-2); white-space: nowrap;
+  box-shadow: 0 6px 16px rgba(0,0,0,.3);
+  pointer-events: none; z-index: var(--cp-z-markers);
+  display: none;
+}
+.cp-hover-label b { font-weight: 500; color: var(--cp-fg-0); margin-right: 8px; }
+body.cp-pin-mode .site { cursor: crosshair; }
+
+/* =====================================================================
+   carapin: the drawer
+   ===================================================================== */
+.cp-drawer {
+  position: fixed; top: 0; right: 0; bottom: 0;
+  width: var(--cp-drawer-width);
+  background: var(--cp-bg-0); color: var(--cp-fg-0);
+  font: 400 var(--cp-text-md)/var(--cp-leading-body) var(--cp-font-ui);
+  border-left: 1px solid var(--cp-line-1);
+  box-shadow: var(--cp-shadow-drawer);
+  display: flex; flex-direction: column;
+  z-index: var(--cp-z-drawer);
+  -webkit-font-smoothing: antialiased;
+}
+.cp-drawer *:focus-visible { outline: none; box-shadow: var(--cp-focus-ring); }
+
+/* Header */
+.cp-head {
+  display: flex; align-items: center; gap: var(--cp-space-4);
+  height: 48px; padding: 0 var(--cp-space-5) 0 var(--cp-space-6);
+  background: var(--cp-bg-1); border-bottom: 1px solid var(--cp-line-1);
+  flex: none;
+}
+.cp-title { font-size: var(--cp-text-lg); font-weight: 600; letter-spacing: -0.01em; }
+.cp-page { font: 400 var(--cp-text-xs)/1 var(--cp-font-mono); color: var(--cp-fg-2); padding: 3px 6px; border: 1px solid var(--cp-line-2); border-radius: var(--cp-radius-1); }
+.cp-head .spacer { flex: 1; }
+
+/* Buttons */
+.cp-btn {
+  appearance: none; font: 500 var(--cp-text-sm)/1 var(--cp-font-ui);
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 28px; padding: 0 10px; border-radius: var(--cp-radius-2);
+  background: transparent; color: var(--cp-fg-1);
+  border: 1px solid var(--cp-line-2); cursor: pointer;
+  transition: background .08s ease, border-color .08s ease, color .08s ease;
+  white-space: nowrap;
+}
+.cp-btn svg { width: 14px; height: 14px; }
+.cp-btn:hover { background: var(--cp-bg-2); border-color: var(--cp-line-3); color: var(--cp-fg-0); }
+.cp-btn:active { background: var(--cp-bg-3); }
+.cp-btn[aria-pressed="true"] { background: var(--cp-accent-soft); border-color: var(--cp-accent); color: var(--cp-accent); }
+.cp-btn.primary { background: var(--cp-fg-0); color: var(--cp-fg-inverse); border-color: var(--cp-fg-0); }
+.cp-btn.primary:hover { background: #fff; border-color: #fff; }
+.cp-btn.primary:active { background: #d7dae2; border-color: #d7dae2; }
+.cp-btn.done { background: var(--cp-done-soft); border-color: rgba(87,196,138,.4); color: var(--cp-done-text); }
+.cp-btn.done:hover { background: rgba(87,196,138,.22); border-color: var(--cp-done); color: #c6f0d9; }
+.cp-btn.danger { color: var(--cp-danger); }
+.cp-btn.danger:hover { background: var(--cp-danger-soft); border-color: rgba(240,113,120,.45); color: var(--cp-danger); }
+.cp-btn.danger.solid { background: var(--cp-danger); border-color: var(--cp-danger); color: var(--cp-fg-inverse); }
+.cp-btn.danger.solid:hover { background: #f58a90; border-color: #f58a90; }
+.cp-btn.quiet { border-color: transparent; color: var(--cp-fg-2); }
+.cp-btn.quiet:hover { border-color: transparent; color: var(--cp-fg-0); }
+.cp-btn.icon { width: 28px; padding: 0; justify-content: center; }
+.cp-btn.small { height: 24px; padding: 0 8px; font-size: var(--cp-text-xs); }
+.cp-btn:disabled { opacity: .45; cursor: default; }
+.cp-btn:disabled:hover { background: transparent; border-color: var(--cp-line-2); color: var(--cp-fg-1); }
+
+/* Toolbar row under the header: count + done toggle */
+.cp-subbar {
+  display: flex; align-items: center; gap: var(--cp-space-4);
+  padding: var(--cp-space-4) var(--cp-space-5) var(--cp-space-4) var(--cp-space-6);
+  border-bottom: 1px solid var(--cp-line-1); flex: none;
+  color: var(--cp-fg-2); font-size: var(--cp-text-sm);
+}
+.cp-subbar .count { color: var(--cp-fg-1); }
+.cp-subbar .count b { color: var(--cp-fg-0); font-weight: 600; }
+.cp-subbar .review-count { color: var(--cp-review-text); }
+.cp-subbar .spacer { flex: 1; }
+
+.cp-switch {
+  display: inline-flex; align-items: center; gap: 8px; cursor: pointer; user-select: none;
+  color: var(--cp-fg-2); font-size: var(--cp-text-sm); padding: 2px 4px; border-radius: var(--cp-radius-2);
+}
+.cp-switch:hover { color: var(--cp-fg-1); }
+.cp-switch .track {
+  width: 26px; height: 15px; border-radius: 999px; background: var(--cp-bg-3);
+  border: 1px solid var(--cp-line-2); position: relative; transition: background .1s ease;
+}
+.cp-switch .track::after {
+  content: ""; position: absolute; top: 1px; left: 1px; width: 11px; height: 11px; border-radius: 50%;
+  background: var(--cp-fg-1); transition: transform .12s ease, background .1s ease;
+}
+.cp-switch[aria-checked="true"] { color: var(--cp-fg-0); }
+.cp-switch[aria-checked="true"] .track { background: var(--cp-done-soft); border-color: rgba(87,196,138,.5); }
+.cp-switch[aria-checked="true"] .track::after { transform: translateX(11px); background: var(--cp-done); }
+
+/* Scroll region */
+.cp-body { flex: 1; overflow: auto; min-height: 0; }
+
+/* Pin list */
+.cp-list { list-style: none; margin: 0; padding: var(--cp-space-2) 0; }
+.cp-row {
+  display: grid; grid-template-columns: 24px 1fr auto; column-gap: var(--cp-space-4);
+  align-items: start; padding: var(--cp-space-4) var(--cp-space-5) var(--cp-space-4) var(--cp-space-6);
+  cursor: pointer; border-left: 2px solid transparent;
+  transition: background .06s ease;
+}
+.cp-row:hover { background: var(--cp-bg-2); }
+.cp-row:active { background: var(--cp-bg-3); }
+.cp-row:focus-visible { box-shadow: inset var(--cp-focus-ring); }
+.cp-row.is-selected { background: var(--cp-bg-2); border-left-color: var(--cp-accent); }
+.cp-row[data-status="review"] { border-left-color: var(--cp-review); }
+.cp-row[data-status="review"].is-selected { border-left-color: var(--cp-accent); }
+.cp-row .text { min-width: 0; }
+.cp-row .note {
+  color: var(--cp-fg-0); font-weight: 500; line-height: var(--cp-leading-tight);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 3px;
+}
+.cp-row[data-status="done"] .note { color: var(--cp-fg-1); font-weight: 400; }
+.cp-row .meta {
+  margin-top: 3px; font-size: var(--cp-text-xs); color: var(--cp-fg-2);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.cp-row .meta .tag { font-family: var(--cp-font-mono); color: var(--cp-fg-1); }
+.cp-row .meta .snippet { font-style: normal; }
+.cp-row .meta .snippet::before { content: "“"; }
+.cp-row .meta .snippet::after { content: "”"; }
+.cp-row .meta .file { font-family: var(--cp-font-mono); }
+.cp-row .side { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; padding-top: 2px; }
+.cp-row .side .when { font-size: var(--cp-text-xs); color: var(--cp-fg-2); font-variant-numeric: tabular-nums; }
+
+/* Pin number — the same glyph as the marker, so list and page read together */
+.cp-num {
+  width: 20px; height: 20px; border-radius: var(--cp-radius-full);
+  font: 500 11px/1 var(--cp-font-mono); display: grid; place-items: center; flex: none;
+  color: var(--cp-fg-inverse);
+}
+.cp-num[data-status="open"]   { background: var(--cp-open); }
+.cp-num[data-status="review"] { background: var(--cp-review); box-shadow: var(--cp-review-glow); }
+.cp-num[data-status="done"]   { background: transparent; color: var(--cp-done); box-shadow: inset 0 0 0 1.5px var(--cp-done); }
+.cp-num[data-status="lost"]   { background: transparent; color: var(--cp-lost); border: 1.5px dashed var(--cp-lost); }
+
+/* Status chips */
+.cp-chip {
+  display: inline-flex; align-items: center; gap: 5px; height: 18px; padding: 0 7px;
+  border-radius: var(--cp-radius-1); font-size: var(--cp-text-xs); font-weight: 500;
+  letter-spacing: var(--cp-tracking-caps); text-transform: uppercase; line-height: 1;
+}
+.cp-chip[data-status="open"]   { background: var(--cp-open-soft); color: var(--cp-open-text); }
+.cp-chip[data-status="review"] { background: var(--cp-review-soft); color: var(--cp-review-text); }
+.cp-chip[data-status="done"]   { background: var(--cp-done-soft); color: var(--cp-done-text); }
+.cp-chip[data-status="lost"]   { background: var(--cp-lost-soft); color: var(--cp-fg-2); border: 1px dashed var(--cp-line-3); }
+.cp-chip .dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+.cp-label {
+  display: inline-block; height: 18px; padding: 0 6px; line-height: 17px; border-radius: var(--cp-radius-1);
+  font: 500 var(--cp-text-xs)/17px var(--cp-font-mono); color: var(--cp-fg-1);
+  background: var(--cp-bg-3); border: 1px solid var(--cp-line-2);
+}
+
+/* Lost pins: greyed row, recorded text + source stay visible so Rich can still find it */
+.cp-row[data-status="lost"] .note { color: var(--cp-fg-1); }
+.cp-row[data-status="lost"] .meta { color: var(--cp-fg-2); }
+.cp-row[data-status="lost"]:hover .note { color: var(--cp-fg-0); }
+
+/* Empty state */
+.cp-empty {
+  padding: var(--cp-space-9) var(--cp-space-8); text-align: center; color: var(--cp-fg-2);
+}
+.cp-empty .glyph {
+  width: 40px; height: 40px; margin: 0 auto var(--cp-space-6); border-radius: 50%;
+  border: 1.5px dashed var(--cp-line-3); display: grid; place-items: center; color: var(--cp-fg-2);
+  font: 500 14px/1 var(--cp-font-mono);
+}
+.cp-empty h3 { margin: 0 0 var(--cp-space-3); font-size: var(--cp-text-lg); font-weight: 500; color: var(--cp-fg-0); }
+.cp-empty p { margin: 0 0 var(--cp-space-7); font-size: var(--cp-text-md); max-width: 30ch; margin-left: auto; margin-right: auto; }
+.cp-empty kbd { font: 500 var(--cp-text-xs)/1 var(--cp-font-mono); color: var(--cp-fg-1); background: var(--cp-bg-3); border: 1px solid var(--cp-line-2); border-radius: var(--cp-radius-1); padding: 2px 5px; }
+
+/* Thread view */
+.cp-thread-head {
+  padding: var(--cp-space-4) var(--cp-space-5) var(--cp-space-5) var(--cp-space-6);
+  border-bottom: 1px solid var(--cp-line-1);
+}
+.cp-thread-head .nav { display: flex; align-items: center; gap: var(--cp-space-3); margin-bottom: var(--cp-space-5); margin-left: -6px; }
+.cp-thread-head .nav .spacer { flex: 1; }
+.cp-thread-head .headline { display: flex; align-items: center; gap: var(--cp-space-4); margin-bottom: var(--cp-space-4); }
+.cp-thread-head .headline .cp-num { width: 22px; height: 22px; font-size: 12px; }
+.cp-thread-head .headline h2 { margin: 0; font-size: var(--cp-text-lg); font-weight: 600; letter-spacing: -0.01em; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cp-anchor {
+  display: grid; grid-template-columns: auto 1fr; column-gap: var(--cp-space-4); row-gap: 3px;
+  font-size: var(--cp-text-xs); color: var(--cp-fg-2); align-items: baseline;
+}
+.cp-anchor .k { color: var(--cp-fg-2); }
+.cp-anchor .v { color: var(--cp-fg-1); font-family: var(--cp-font-mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cp-anchor .v.text { font-family: var(--cp-font-ui); color: var(--cp-fg-1); }
+.cp-anchor .v.text::before { content: "“"; } .cp-anchor .v.text::after { content: "”"; }
+.cp-anchor a.v { color: var(--cp-accent); text-decoration: none; }
+.cp-anchor a.v:hover { text-decoration: underline; }
+
+.cp-comments { padding: var(--cp-space-5) var(--cp-space-5) var(--cp-space-5) var(--cp-space-6); display: flex; flex-direction: column; gap: var(--cp-space-5); }
+.cp-comment { display: grid; grid-template-columns: 22px 1fr; column-gap: var(--cp-space-4); }
+.cp-avatar {
+  width: 22px; height: 22px; border-radius: var(--cp-radius-full); display: grid; place-items: center;
+  font: 600 10px/1 var(--cp-font-ui); letter-spacing: .02em;
+}
+.cp-avatar[data-author="human"] { background: var(--cp-bg-3); color: var(--cp-fg-1); border: 1px solid var(--cp-line-2); }
+.cp-avatar[data-author="claude"] { background: #d9c7b6; color: #3a2a1c; }
+.cp-comment .who { display: flex; align-items: baseline; gap: var(--cp-space-4); margin-bottom: 3px; }
+.cp-comment .who .name { font-weight: 600; font-size: var(--cp-text-sm); color: var(--cp-fg-0); }
+.cp-comment .who .when { font-size: var(--cp-text-xs); color: var(--cp-fg-2); }
+.cp-comment .who .status-note { font-size: var(--cp-text-xs); color: var(--cp-review-text); margin-left: auto; }
+.cp-comment .body { color: var(--cp-fg-0); white-space: pre-wrap; }
+.cp-comment .body code { font: 400 12px/1.4 var(--cp-font-mono); color: var(--cp-fg-1); background: var(--cp-bg-2); padding: 1px 4px; border-radius: var(--cp-radius-1); }
+
+/* Reply box + actions (sticky bottom of the thread) */
+.cp-foot {
+  flex: none; border-top: 1px solid var(--cp-line-1); background: var(--cp-bg-1);
+  padding: var(--cp-space-5) var(--cp-space-5) var(--cp-space-5) var(--cp-space-6);
+}
+.cp-textarea {
+  width: 100%; resize: none; display: block;
+  font: 400 var(--cp-text-md)/var(--cp-leading-body) var(--cp-font-ui);
+  color: var(--cp-fg-0); background: var(--cp-bg-2);
+  border: 1px solid var(--cp-line-2); border-radius: var(--cp-radius-2);
+  padding: var(--cp-space-4) var(--cp-space-5); min-height: 64px;
+}
+.cp-textarea::placeholder { color: var(--cp-fg-2); }
+.cp-textarea:hover { border-color: var(--cp-line-3); }
+.cp-textarea:focus { border-color: var(--cp-accent); box-shadow: 0 0 0 3px var(--cp-accent-soft); outline: none; }
+.cp-foot .actions { display: flex; align-items: center; gap: var(--cp-space-4); margin-top: var(--cp-space-4); }
+.cp-foot .actions .spacer { flex: 1; }
+.cp-hint { font-size: var(--cp-text-xs); color: var(--cp-fg-2); }
+.cp-hint kbd { font: 500 10px/1 var(--cp-font-mono); color: var(--cp-fg-1); background: var(--cp-bg-3); border: 1px solid var(--cp-line-2); border-radius: var(--cp-radius-1); padding: 2px 4px; margin: 0 1px; }
+.cp-hint .warm { color: var(--cp-review-text); }
+
+/* Inline delete confirm — replaces the action row in place */
+.cp-confirm {
+  display: flex; align-items: center; gap: var(--cp-space-4);
+  padding: var(--cp-space-4) var(--cp-space-5); border-radius: var(--cp-radius-2);
+  background: var(--cp-danger-soft); border: 1px solid rgba(240,113,120,.35);
+  font-size: var(--cp-text-sm); color: var(--cp-fg-0);
+}
+.cp-confirm .spacer { flex: 1; }
+
+/* Composer */
+.cp-picked {
+  margin: var(--cp-space-5) var(--cp-space-5) 0 var(--cp-space-6);
+  padding: var(--cp-space-5); border-radius: var(--cp-radius-3);
+  background: var(--cp-bg-1); border: 1px solid var(--cp-line-2);
+}
+.cp-picked .row1 { display: flex; align-items: center; gap: var(--cp-space-4); margin-bottom: var(--cp-space-3); }
+.cp-picked .tag { font: 500 var(--cp-text-sm)/1 var(--cp-font-mono); color: var(--cp-accent); background: var(--cp-accent-soft); padding: 4px 6px; border-radius: var(--cp-radius-1); }
+.cp-picked .snippet { color: var(--cp-fg-0); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; }
+.cp-picked .snippet::before { content: "“"; color: var(--cp-fg-2); } .cp-picked .snippet::after { content: "”"; color: var(--cp-fg-2); }
+.cp-picked .src { font: 400 var(--cp-text-xs)/1.4 var(--cp-font-mono); color: var(--cp-fg-1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cp-picked .chain { font: 400 var(--cp-text-xs)/1.4 var(--cp-font-mono); color: var(--cp-fg-2); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cp-picked .chain span + span::before { content: " ‹ "; color: var(--cp-line-3); }
+.cp-composer-body { padding: var(--cp-space-5) var(--cp-space-5) 0 var(--cp-space-6); }
+.cp-composer-body .cp-textarea { min-height: 112px; }
+
+/* Error banner */
+.cp-error {
+  margin: var(--cp-space-5) var(--cp-space-5) 0 var(--cp-space-6);
+  padding: var(--cp-space-5); border-radius: var(--cp-radius-3);
+  background: var(--cp-danger-soft); border: 1px solid rgba(240,113,120,.35);
+  display: grid; grid-template-columns: 16px 1fr; column-gap: var(--cp-space-4);
+}
+.cp-error svg { width: 16px; height: 16px; color: var(--cp-danger); margin-top: 1px; }
+.cp-error h4 { margin: 0 0 3px; font-size: var(--cp-text-md); font-weight: 600; color: var(--cp-fg-0); }
+.cp-error p { margin: 0 0 var(--cp-space-4); font-size: var(--cp-text-sm); color: var(--cp-fg-1); }
+.cp-error pre {
+  margin: 0 0 var(--cp-space-4); padding: var(--cp-space-4); border-radius: var(--cp-radius-2);
+  background: var(--cp-bg-0); border: 1px solid var(--cp-line-2);
+  font: 400 var(--cp-text-xs)/1.5 var(--cp-font-mono); color: var(--cp-fg-1); white-space: pre-wrap; overflow: hidden;
+}
+.cp-error pre .bad { color: var(--cp-danger); text-decoration: underline wavy var(--cp-danger); text-underline-offset: 3px; }
+.cp-error .actions { display: flex; gap: var(--cp-space-4); align-items: center; }
+.cp-body.is-stale .cp-list { opacity: .35; pointer-events: none; }
+.cp-stale-note { padding: var(--cp-space-4) var(--cp-space-6) 0; font-size: var(--cp-text-xs); color: var(--cp-fg-2); }
+
+/* =====================================================================
+   Mockup-only: state switcher and visibility rules  (not product)
+   ===================================================================== */
+.mock-controls {
+  position: fixed; left: 14px; top: 14px; z-index: 2147483300;
+  background: #fff; color: #222; border: 1px solid #d8d2c9; border-radius: 10px;
+  padding: 10px 12px; font: 12px/1.4 "Inter", system-ui, sans-serif;
+  box-shadow: 0 8px 24px rgba(0,0,0,.12); width: 210px;
+}
+.mock-controls h5 { margin: 0 0 6px; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: #8a7562; }
+.mock-controls label { display: flex; align-items: center; gap: 6px; padding: 2px 0; cursor: pointer; }
+.mock-controls hr { border: 0; border-top: 1px solid #eee5db; margin: 6px 0; }
+.mock-controls .note { color: #8a7562; font-size: 11px; margin-top: 4px; }
+
+/* Which drawer view shows */
+.cp-view { display: none; flex-direction: column; flex: 1; min-height: 0; }
+body[data-state="list"]       .cp-view-list,
+body[data-state="empty"]      .cp-view-empty,
+body[data-state="done-shown"] .cp-view-list,
+body[data-state="thread"]     .cp-view-thread,
+body[data-state="composer"]   .cp-view-composer,
+body[data-state="delete"]     .cp-view-thread,
+body[data-state="error"]      .cp-view-list { display: flex; }
+
+/* done row + marker only when done is shown */
+.cp-row[data-status="done"] { display: none; }
+body[data-state="done-shown"] .cp-row[data-status="done"] { display: grid; }
+body[data-state="done-shown"] .cp-switch { color: var(--cp-fg-0); }
+
+/* markers */
+body[data-state="list"] .cp-marker:not([data-status="done"]),
+body[data-state="thread"] .cp-marker:not([data-status="done"]),
+body[data-state="delete"] .cp-marker:not([data-status="done"]),
+body[data-state="composer"] .cp-marker:not([data-status="done"]),
+body[data-state="error"] .cp-marker:not([data-status="done"]),
+body[data-state="done-shown"] .cp-marker { display: grid; }
+
+/* thread: pin 4 selected on the page */
+body[data-state="thread"] #el-cta-btn, body[data-state="delete"] #el-cta-btn { outline: 2px solid var(--cp-accent); outline-offset: 3px; border-radius: 8px; }
+body[data-state="thread"] #mk-4, body[data-state="delete"] #mk-4 { box-shadow: var(--cp-shadow-marker), 0 0 0 3px var(--cp-accent); }
+
+/* composer: the just-clicked element is the third card's paragraph */
+body[data-state="composer"] #el-card3-p { outline: 2px solid var(--cp-accent); outline-offset: 3px; border-radius: 4px; }
+body[data-state="composer"] .cp-btn-pinmode { background: var(--cp-accent-soft); border-color: var(--cp-accent); color: var(--cp-accent); }
+
+/* delete: swap the action row for the confirm */
+.cp-thread-actions-normal { display: flex; }
+.cp-confirm { display: none; }
+body[data-state="delete"] .cp-thread-actions-normal { display: none; }
+body[data-state="delete"] .cp-confirm { display: flex; }
+
+/* error: banner + stale list */
+.cp-error, .cp-stale-note { display: none; }
+body[data-state="error"] .cp-error { display: grid; }
+body[data-state="error"] .cp-stale-note { display: block; }
+body[data-state="error"] .cp-body .cp-list { opacity: .35; pointer-events: none; }
+
+/* pin mode hover (mockup checkbox) */
+body.cp-pin-mode #el-card2-p { outline: 2px dashed var(--cp-accent); outline-offset: 3px; border-radius: 4px; }
+body.cp-pin-mode #el-card2-p .cp-hover-label { display: block; }
+body.cp-pin-mode .cp-btn-pinmode { background: var(--cp-accent-soft); border-color: var(--cp-accent); color: var(--cp-accent); }
+body[data-state="composer"] #el-card2-p { outline: none; }
+body[data-state="composer"] #el-card2-p .cp-hover-label { display: none; }
+</style>
+</head>
+<body data-state="list">
+
+<!-- ================================================================
+     Mockup-only state switcher
+     ================================================================ -->
+<div class="mock-controls" aria-label="Mockup controls (not product)">
+  <h5>Mockup state</h5>
+  <label><input type="radio" name="state" value="list" checked> List (open + review, one lost)</label>
+  <label><input type="radio" name="state" value="done-shown"> List, done shown</label>
+  <label><input type="radio" name="state" value="empty"> List, empty</label>
+  <label><input type="radio" name="state" value="thread"> Thread (review pin 4)</label>
+  <label><input type="radio" name="state" value="composer"> Composer (just clicked)</label>
+  <label><input type="radio" name="state" value="delete"> Delete inline confirm</label>
+  <label><input type="radio" name="state" value="error"> Error (invalid JSON)</label>
+  <hr>
+  <label><input type="checkbox" id="pinmode"> Pin mode: hover outline</label>
+  <div class="note">Not part of the product.</div>
+</div>
+
+<!-- ================================================================
+     Stand-in page: Fernhill Roasters
+     ================================================================ -->
+<div class="site">
+  <header class="site-header">
+    <div class="brand pinnable">
+      <span class="brand-name">Fernhill Roasters</span>
+      <span class="brand-tag">Since 2011</span>
+      <!-- pin 6 is lost: the tagline it pointed at has been re-marked-up; no marker -->
+    </div>
+    <nav class="site-nav"><a href="#">Coffee</a><a href="#">Subscriptions</a><a href="#">Cafés</a><a href="#">About</a></nav>
+  </header>
+
+  <section class="hero pinnable" id="el-hero">
+    <button class="cp-marker" data-status="open" id="mk-5" aria-label="Pin 5, open" style="top:-2px;left:38px">5</button>
+    <div>
+      <h1 class="pinnable" id="el-hero-h1">
+        <button class="cp-marker" data-status="done" id="mk-1" aria-label="Pin 1, done">1</button>
+        Small-batch roasting from a hillside in Te Aro
+      </h1>
+      <p class="pinnable" id="el-hero-p">
+        <button class="cp-marker" data-status="open" id="mk-2" aria-label="Pin 2, open">2</button>
+        We roast twice a week, in batches small enough to taste every one. Beans come from farms we've visited, at prices we agreed at the table, shipped the morning after they leave the drum.
+      </p>
+      <div class="hero-actions">
+        <a class="btn-site primary" href="#">Shop the roast</a>
+        <a class="btn-site ghost" href="#">Visit the roastery</a>
+      </div>
+    </div>
+    <div class="hero-art" aria-hidden="true"></div>
+  </section>
+
+  <section class="features">
+    <div class="features-head">Why Fernhill</div>
+    <div class="cards">
+      <article class="card">
+        <div class="icon"></div>
+        <h3>Traded directly with growers</h3>
+        <p>No importers, no auctions. We buy from eleven farms and we know the people who run them.</p>
+      </article>
+      <article class="card">
+        <div class="icon"></div>
+        <h3 class="pinnable" id="el-card2-h3">
+          <button class="cp-marker" data-status="review" id="mk-3" aria-label="Pin 3, review">3</button>
+          Roasted this week
+        </h3>
+        <p class="pinnable" id="el-card2-p">
+          Every bag is stamped with its roast date. If it's older than fourteen days, it doesn't ship.
+          <span class="cp-hover-label"><b>p</b>src/components/FeatureCard.astro:21:5</span>
+        </p>
+      </article>
+      <article class="card">
+        <div class="icon"></div>
+        <h3>Subscriptions that flex</h3>
+        <p class="pinnable" id="el-card3-p">
+          <button class="cp-marker" data-status="open" id="mk-7" aria-label="Pin 7, open">7</button>
+          Leverage our omnichannel fulfilment cadence to optimise your caffeine journey with a synergistic bean rotation.
+        </p>
+      </article>
+    </div>
+  </section>
+
+  <section class="cta-band">
+    <div>
+      <h2>Your first bag is on us</h2>
+      <p>Start a subscription and the first 250g ships free.</p>
+    </div>
+    <span class="pinnable" id="el-cta-btn" style="display:inline-block">
+      <button class="cp-marker" data-status="review" id="mk-4" aria-label="Pin 4, review">4</button>
+      <a class="btn-site primary" href="#">Start a subscription</a>
+    </span>
+  </section>
+</div>
+
+<!-- Astro dev toolbar pill (hint) -->
+<div class="astro-pill" aria-hidden="true">
+  <div class="ico"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1 2.5 13h2.2l1-2.4h4.6l1 2.4h2.2L8 1Zm0 4.2 1.6 3.8H6.4L8 5.2Z"/></svg></div>
+  <div class="ico"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M6 8h4M8 6v4"/></svg></div>
+  <div class="ico"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 12 8 3l5 9H3Z"/></svg></div>
+  <div class="ico"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="5.5"/><path d="M8 5v3l2 1"/></svg></div>
+  <div class="sep"></div>
+  <div class="ico active" title="Pins"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 14s4-4.2 4-7.5a4 4 0 0 0-8 0C4 9.8 8 14 8 14Z"/><circle cx="8" cy="6.5" r="1.4"/></svg></div>
+  <div class="ico"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="2.2"/><path d="M8 2v2M8 12v2M2 8h2M12 8h2M3.8 3.8l1.4 1.4M10.8 10.8l1.4 1.4M3.8 12.2l1.4-1.4M10.8 5.2l1.4-1.4"/></svg></div>
+</div>
+
+<!-- ================================================================
+     carapin drawer
+     ================================================================ -->
+<aside class="cp-drawer" aria-label="Pins">
+
+  <header class="cp-head">
+    <span class="cp-title">Pins</span>
+    <span class="cp-page">/</span>
+    <span class="spacer"></span>
+    <button class="cp-btn cp-btn-pinmode" aria-pressed="false" title="Pin mode — click an element to pin it (Esc leaves)">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 14s4-4.2 4-7.5a4 4 0 0 0-8 0C4 9.8 8 14 8 14Z"/><circle cx="8" cy="6.5" r="1.4"/></svg>
+      Pin mode
+    </button>
+    <button class="cp-btn icon quiet" aria-label="Close panel" title="Close">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4l8 8M12 4l-8 8"/></svg>
+    </button>
+  </header>
+
+  <!-- ---------- List ---------- -->
+  <section class="cp-view cp-view-list">
+    <div class="cp-subbar">
+      <span class="count"><b>6</b> pins · <span class="review-count">2 to check</span></span>
+      <span class="spacer"></span>
+      <button class="cp-switch" role="switch" aria-checked="false" id="showdone">
+        <span class="track"></span> Show done
+      </button>
+    </div>
+
+    <div class="cp-error" role="alert">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="6.5"/><path d="M8 4.5v4M8 11v.5"/></svg>
+      <div>
+        <h4>Couldn't read the pin file</h4>
+        <p><code style="font-family:var(--cp-font-mono);font-size:11px;color:var(--cp-fg-0)">.carapin/index.json</code> isn't valid JSON, so nothing is written until it's fixed. The file was left untouched.</p>
+        <pre>line 14, col 7 — Expected ',' or ']' after array element
+  13 │        "text": "Make this bigger",
+  14 │      <span class="bad">}</span>
+  15 │    ],</pre>
+        <div class="actions">
+          <button class="cp-btn">Retry</button>
+          <button class="cp-btn quiet">Open file</button>
+        </div>
+      </div>
+    </div>
+    <div class="cp-stale-note">Showing the last good read from 14:02.</div>
+
+    <div class="cp-body">
+      <ul class="cp-list">
+        <li class="cp-row" data-status="done" tabindex="0">
+          <span class="cp-num" data-status="done">1</span>
+          <div class="text">
+            <div class="note">Tighten this</div>
+            <div class="meta"><span class="tag">h1</span> · <span class="snippet">Small-batch roasting from a hillside…</span></div>
+          </div>
+          <div class="side"><span class="cp-chip" data-status="done"><span class="dot"></span>done</span><span class="when">yesterday</span></div>
+        </li>
+
+        <li class="cp-row" data-status="open" tabindex="0">
+          <span class="cp-num" data-status="open">2</span>
+          <div class="text">
+            <div class="note">Shorter. Two sentences max, drop the "shipped the morning after" bit.</div>
+            <div class="meta"><span class="tag">p</span> · <span class="snippet">We roast twice a week, in batches…</span></div>
+          </div>
+          <div class="side"><span class="cp-chip" data-status="open"><span class="dot"></span>open</span><span class="when">2h</span></div>
+        </li>
+
+        <li class="cp-row" data-status="review" tabindex="0">
+          <span class="cp-num" data-status="review">3</span>
+          <div class="text">
+            <div class="note">Bigger</div>
+            <div class="meta"><span class="tag">h3</span> · <span class="snippet">Roasted this week</span> · Claude: bumped to 22px, weight 600</div>
+          </div>
+          <div class="side"><span class="cp-chip" data-status="review"><span class="dot"></span>review</span><span class="when">40m</span></div>
+        </li>
+
+        <li class="cp-row" data-status="review" tabindex="0">
+          <span class="cp-num" data-status="review">4</span>
+          <div class="text">
+            <div class="note">Make this blue</div>
+            <div class="meta"><span class="tag">a</span> · <span class="snippet">Start a subscription</span> · Claude: royal blue, hover one step darker</div>
+          </div>
+          <div class="side"><span class="cp-chip" data-status="review"><span class="dot"></span>review</span><span class="when">40m</span></div>
+        </li>
+
+        <li class="cp-row" data-status="open" tabindex="0">
+          <span class="cp-num" data-status="open">5</span>
+          <div class="text">
+            <div class="note">Hero: image or video, optional CTA with URL. Heading + body editable.</div>
+            <div class="meta"><span class="tag">section</span> · <span class="file">src/components/Hero.astro:4:1</span></div>
+          </div>
+          <div class="side"><span class="cp-label" title="label: content">content</span><span class="when">1h</span></div>
+        </li>
+
+        <li class="cp-row" data-status="lost" tabindex="0">
+          <span class="cp-num" data-status="lost">6</span>
+          <div class="text">
+            <div class="note">Remove the tagline under the logo</div>
+            <div class="meta"><span class="tag">span</span> · <span class="snippet">Since 2011</span> · <span class="file">src/components/Header.astro:9:7</span></div>
+          </div>
+          <div class="side"><span class="cp-chip" data-status="lost">lost</span><span class="when">3d</span></div>
+        </li>
+
+        <li class="cp-row" data-status="open" tabindex="0">
+          <span class="cp-num" data-status="open">7</span>
+          <div class="text">
+            <div class="note">Cut the jargon. Say what the subscription actually does.</div>
+            <div class="meta"><span class="tag">p</span> · <span class="snippet">Leverage our omnichannel fulfilment…</span></div>
+          </div>
+          <div class="side"><span class="cp-chip" data-status="open"><span class="dot"></span>open</span><span class="when">12m</span></div>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ---------- Empty ---------- -->
+  <section class="cp-view cp-view-empty">
+    <div class="cp-subbar">
+      <span class="count"><b>0</b> pins</span>
+      <span class="spacer"></span>
+      <button class="cp-switch" role="switch" aria-checked="false" disabled style="opacity:.5;cursor:default">
+        <span class="track"></span> Show done
+      </button>
+    </div>
+    <div class="cp-body">
+      <div class="cp-empty">
+        <div class="glyph">1</div>
+        <h3>No pins on this page</h3>
+        <p>Turn on pin mode, click something, write a sentence. <kbd>Esc</kbd> leaves pin mode.</p>
+        <button class="cp-btn primary">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 14s4-4.2 4-7.5a4 4 0 0 0-8 0C4 9.8 8 14 8 14Z"/><circle cx="8" cy="6.5" r="1.4"/></svg>
+          Start pinning
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------- Thread (pin 4, review) ---------- -->
+  <section class="cp-view cp-view-thread">
+    <div class="cp-thread-head">
+      <div class="nav">
+        <button class="cp-btn quiet small">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M10 3 5 8l5 5"/></svg>
+          All pins
+        </button>
+        <span class="spacer"></span>
+        <span class="cp-chip" data-status="review"><span class="dot"></span>review</span>
+      </div>
+      <div class="headline">
+        <span class="cp-num" data-status="review">4</span>
+        <h2>Make this blue</h2>
+      </div>
+      <div class="cp-anchor">
+        <span class="k">element</span><span class="v"><span style="color:var(--cp-accent)">a</span> <span class="text" style="display:inline">Start a subscription</span></span>
+        <span class="k">source</span><a class="v" href="#" title="src/components/Cta.astro:12:5">src/components/Cta.astro:12:5</a>
+        <span class="k">in</span><span class="v" style="color:var(--cp-fg-2)">Cta.astro ‹ index.astro ‹ Base.astro</span>
+      </div>
+    </div>
+
+    <div class="cp-body">
+      <div class="cp-comments">
+        <div class="cp-comment">
+          <span class="cp-avatar" data-author="human">R</span>
+          <div>
+            <div class="who"><span class="name">You</span><span class="when">Today, 13:20</span></div>
+            <div class="body">Make this blue</div>
+          </div>
+        </div>
+        <div class="cp-comment">
+          <span class="cp-avatar" data-author="claude">C</span>
+          <div>
+            <div class="who"><span class="name">Claude</span><span class="when">13:41</span><span class="status-note">→ review</span></div>
+            <div class="body">Set the CTA button to royal blue (<code>#4169e1</code>) in <code>Cta.astro:12</code>, hover one step darker. Kept the white text; contrast is 5.9:1.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cp-foot">
+      <textarea class="cp-textarea" placeholder="Reply…" aria-label="Reply">No, indigo. And drop the hover darkening.</textarea>
+      <div class="actions cp-thread-actions-normal">
+        <button class="cp-btn primary">Reply</button>
+        <span class="cp-hint"><kbd>⌘</kbd><kbd>↵</kbd> · <span class="warm">reopens the pin</span></span>
+        <span class="spacer"></span>
+        <button class="cp-btn done">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8.5l3 3 7-7"/></svg>
+          Mark done
+        </button>
+        <button class="cp-btn icon quiet danger" aria-label="Delete pin" title="Delete pin">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.6 8h5.8l.6-8"/></svg>
+        </button>
+      </div>
+      <div class="cp-confirm" role="alertdialog" aria-label="Delete pin?">
+        <span>Delete pin 4 and its 2 comments?</span>
+        <span class="spacer"></span>
+        <button class="cp-btn small">Keep</button>
+        <button class="cp-btn small danger solid">Delete</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------- Composer (just clicked the third card's paragraph) ---------- -->
+  <section class="cp-view cp-view-composer">
+    <div class="cp-thread-head" style="padding-bottom:var(--cp-space-4)">
+      <div class="nav" style="margin-bottom:0">
+        <button class="cp-btn quiet small">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M10 3 5 8l5 5"/></svg>
+          Cancel
+        </button>
+        <span class="spacer"></span>
+        <span style="font-size:var(--cp-text-sm);color:var(--cp-fg-2)">New pin · will be <span style="font-family:var(--cp-font-mono);color:var(--cp-fg-1)">8</span></span>
+      </div>
+    </div>
+
+    <div class="cp-picked">
+      <div class="row1">
+        <span class="tag">p</span>
+        <span class="snippet">Leverage our omnichannel fulfilment cadence to optimise your…</span>
+      </div>
+      <div class="src">src/components/FeatureCard.astro:17:5</div>
+      <div class="chain"><span>FeatureCard.astro</span><span>index.astro</span><span>Base.astro</span></div>
+    </div>
+
+    <div class="cp-composer-body">
+      <textarea class="cp-textarea" placeholder="What should change here?" aria-label="Note" autofocus></textarea>
+    </div>
+
+    <div class="cp-foot" style="margin-top:auto">
+      <div class="actions" style="margin-top:0">
+        <button class="cp-btn primary" disabled>Save pin</button>
+        <span class="cp-hint"><kbd>⌘</kbd><kbd>↵</kbd> save · <kbd>Esc</kbd> cancel</span>
+        <span class="spacer"></span>
+        <span class="cp-hint">Pin mode stays on after saving</span>
+      </div>
+    </div>
+  </section>
+
+</aside>
+
+<script>
+  // Mockup-only wiring. None of this is product code.
+  const body = document.body;
+  document.querySelectorAll('input[name="state"]').forEach(r => {
+    r.addEventListener('change', () => {
+      body.dataset.state = r.value;
+      // the "Show done" switch reflects the state
+      const sw = document.getElementById('showdone');
+      sw.setAttribute('aria-checked', r.value === 'done-shown' ? 'true' : 'false');
+      // composer forces pin mode on
+      const pm = document.getElementById('pinmode');
+      const on = r.value === 'composer' || pm.checked;
+      body.classList.toggle('cp-pin-mode', on);
+      document.querySelector('.cp-btn-pinmode').setAttribute('aria-pressed', on ? 'true' : 'false');
+      document.querySelector('.cp-subbar .count').innerHTML =
+        r.value === 'done-shown' ? '<b>7</b> pins · <span class="review-count">2 to check</span>'
+                                 : '<b>6</b> pins · <span class="review-count">2 to check</span>';
+    });
+  });
+  document.getElementById('pinmode').addEventListener('change', e => {
+    body.classList.toggle('cp-pin-mode', e.target.checked || body.dataset.state === 'composer');
+    document.querySelector('.cp-btn-pinmode').setAttribute('aria-pressed', body.classList.contains('cp-pin-mode') ? 'true' : 'false');
+  });
+  // Show-done switch in the panel flips the state too, so it feels real
+  document.getElementById('showdone').addEventListener('click', () => {
+    const next = body.dataset.state === 'done-shown' ? 'list' : 'done-shown';
+    document.querySelector(`input[name="state"][value="${next}"]`).click();
+  });
+  // Composer: Save enables once there's a note
+  const composerTa = document.querySelector('.cp-view-composer .cp-textarea');
+  const saveBtn = document.querySelector('.cp-view-composer .cp-btn.primary');
+  composerTa.addEventListener('input', () => { saveBtn.disabled = composerTa.value.trim() === ''; });
+</script>
+</body>
+</html>

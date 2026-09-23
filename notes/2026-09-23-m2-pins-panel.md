@@ -5,7 +5,7 @@
 
 # M2 — Pins, threads and the panel
 
-Status: **Phase 1 shipped · next: Phase 2 (panel and markers, wired)** · Last updated: 2026-09-23
+Status: **Phases 1–2 shipped · next: Phase 3 (visual pass, fable)** · Last updated: 2026-09-23
 
 **State detail:** M1 proved the round trip with a provisional file shape and a
 plain-text panel. M2 replaces both with the real thing: the pin file format,
@@ -133,6 +133,7 @@ From notes/2026-09-23-m1-spike.md → "What's built so far" (read it; this is a 
 ## What's built so far (the contract)
 
 - **Phase 1 — pin file + operations.** Format per Decision 1 in `packages/pins/src/types.ts` (`Pin`, `Anchor`, `Comment`, `PinFile`). `src/store.ts`: `createPin`, `replyToPin` (Decision 2 via `statusAfterComment`), `markPinDone`, `deletePin`, all through one `updatePins` (re-read, one change, write; throws `PinError` with `code` ∈ `invalid-key|invalid-file|invalid-input|not-found|empty-text` and writes nothing on failure). Unknown fields and existing key order preserved; text trimmed, capped at 20,000 chars. Messages (client → server) `caracode-pins:{list,create,reply,done,delete}` with `{ path, … , requestId? }`; the server answers every mutation with one `caracode-pins:result` (`ok`, `op`, `key`, `id`, echoed `requestId`, `error`) and on success a fresh `caracode-pins:pins` `{ key, pins, error? }` (also sent after `list` and by the watcher). **Panel replies are always written as `author: "human"`; the server ignores any author the client sends.** `capture()` in `src/toolbar/capture.ts` returns an `Anchor`. Tests `test/store.test.ts`, `test/server.test.ts` (79 total).
+- **Phase 2 — panel and markers, wired.** `src/toolbar/app.ts` only wires; `PinsPanel` (`src/toolbar/panel.ts:65`) owns state and the list / thread / composer views **inside the toolbar canvas's shadow root, markers included**, so a closed panel leaves nothing in the page DOM (Astro hides the canvas). `--cp-*` tokens on `:host` in `src/toolbar/styles.ts`; z tokens sit *below* Astro's toolbar bar (2000000010) so it stays clickable. System font stacks only, no network. `findPinElement` (`src/toolbar/refind.ts:13`, Decision 8; step 1 uses `querySelector`'s first match), `placeMarkers` (`src/toolbar/placement.ts:34`; elements off-screen or under the drawer get no marker), `numberPins` / `filterPins` / `statusOf` (`src/toolbar/model.ts`). `PageLayer` (`src/toolbar/page-layer.ts:25`) re-positions once per frame on scroll, resize, load, fonts, ResizeObserver, MutationObserver, and re-finds on DOM change. `PinMode` (`src/toolbar/pin-mode.ts:42`) blocks pointer events and Enter/Space aimed at the page. Escape order: cancel composer → cancel delete confirm → leave pin mode → Astro closes the panel. Reply drafts kept per pin; the composer textarea and reply box are never re-created on a push. The panel acts only on `result`s whose `requestId` it sent (results broadcast to every tab). `SOURCE_ATTR` exported from `capture.ts`. Tests 105 total (`refind`, `model`, `placement` added).
 
 ## Phases
 
@@ -154,23 +155,25 @@ Everything the panel will ask the server to do, against the real format.
 
 *Files:* `packages/pins/src/{types.ts,store.ts,index.ts}`, `packages/pins/src/toolbar/{app.ts,capture.ts}`, `packages/pins/test/{store,server}.test.ts`.
 
-### Phase 2 — Panel and markers, wired  <!-- ☐ TODO -->
+### Phase 2 — Panel and markers, wired  <!-- ☑ DONE 2026-09-23 -->
 
 All the behaviour, structurally complete. Looks plain; Phase 3 makes it right.
 
-- [ ] Right-docked drawer (Decision 10) with: pin-mode toggle; the list of the page's pins
+- [x] Right-docked drawer (Decision 10) with: pin-mode toggle; the list of the page's pins
   (number, status, first line of the first comment, lost mark), filtered by status with
   done hidden by default (Decisions 3, 7); a pin's thread view (all comments, author and
   time, label if any, source location) with a reply box, Mark done, Delete (Decision 5).
-- [ ] Composer flow per Decision 4.
-- [ ] Markers per Decision 6, re-found per Decision 8, repositioned on scroll/resize and
+- [x] Composer flow per Decision 4.
+- [x] Markers per Decision 6, re-found per Decision 8, repositioned on scroll/resize and
   after the page's layout changes. Clicking a marker opens its thread; selecting a pin in
   the list highlights its element and scrolls it into view.
-- [ ] Keyboard blocking per Decision 9.
-- [ ] External edits (the watcher) update the list and an open thread in place without
+- [x] Keyboard blocking per Decision 9.
+- [x] External edits (the watcher) update the list and an open thread in place without
   losing a half-typed reply.
 
-*Files:* —
+*Verified 2026-09-23:* orchestrator: typecheck + build clean, 105 tests pass, prod grep empty; read `refind.ts` against Decision 8. In the browser: opened Pins, Pin mode, real click on the second card's title → composer showed `h3`, the title, `src/components/FeatureCard.astro:17:5` and the chain; typed a note, ⌘Enter → pin 1 open in the list, numbered marker on the card, pin mode still on. Builder ran exit steps 2–10 in the browser: panel closed → no carapin DOM; three pins; Enter/Space on the CTA blocked in pin mode; reply keeps open; done hides + Show done restores as "1"; inline delete confirm (no `window.confirm`); hand edit to `review` + claude comment appeared within 1.5s while a half-typed reply survived, sending it reopened; removing the `h3` made pin 2 lost with no marker, found again on revert; closed panel → CTA navigates. Also: marker tracked a 137px layout shift exactly; invalid-JSON banner with dimmed last-good list.
+
+*Files:* `packages/pins/src/toolbar/{app.ts,panel.ts,refind.ts,placement.ts,model.ts,page-layer.ts,pin-mode.ts,styles.ts,dom.ts,capture.ts}`, `packages/pins/test/{refind,model,placement}.test.ts`, `notes/mockups/m2-panel.html`.
 
 ### Phase 3 — Visual pass  <!-- ☐ TODO · build: fable -->
 
@@ -221,6 +224,8 @@ Change the page's markup so one pin's element disappears, and it shows as lost.*
 ## Resolved decisions (2026-09-23)
 
 1. **An unknown status is left alone on a human reply** (e.g. a hand-set `"wip"`); Decision 2 only reopens `review`/`done`. (Phase 1)
+3. **Exit step 8 expects four comments, not three** (step 5's reply comes first). Spec typo; behaviour correct. (Phase 2)
+4. **Mockup z-index values would cover Astro's toolbar bar** → lowered below it. (Phase 2)
 2. **A key Claude adds by hand to an existing pin lands at the end of that pin**; existing keys never move. Acceptable: diffs stay small. (Phase 1)
 
 ## Watch-outs / known limitations
