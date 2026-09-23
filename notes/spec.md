@@ -1,81 +1,203 @@
 <!--
-  PRODUCT SPEC TEMPLATE (greenfield method)
+  PRODUCT SPEC (greenfield method)
   Method: /Users/rich/NothingNotes/Research/Claude/greenfield-planning-method.md
   This is the WHAT/WHY doc — features, workflows, problem context. Not an
   implementation plan; keep tech to the thin section at the end. Companion:
   notes/implementation-plan.md.
 -->
 
-# <Project> — Spec
+# carapin — Spec
 
-<Elevator paragraph: what it is, who it's for, the shape of the thing in 2–4
-sentences. Follow with ONE sentence of what it deliberately does not do.>
+carapin is an Astro dev-toolbar app for pinning notes onto elements of a site
+while it runs in local dev. Each pin records where the element lives in the
+source (file and line), what the note says, and its status. Pins are written to
+JSON files in the site's repo, and Claude reads those files and acts on them.
+It is for one developer (Rich) working alone on his own Astro sites. It never
+edits source code and never runs outside `astro dev`.
 
-- **Base URL / where it lives:** <…>
-- **Owner / operator:** <…>
-- **Nature:** <internal tool / client-facing / commercial — and the right-sizing that
-  implies: shared defaults over configurability, etc.>
-- **Status:** <Spec in progress — what's settled · what's open · next question to
-  answer · YYYY-MM-DD. Becomes "Spec signed off <date>" when done. Update this line
-  every session — it's how a paused spec conversation resumes cold.>
+- **Where it lives:** an npm package installed into each Astro site as a dev
+  integration. Repo: `~/repo/caracode-pins`.
+- **Owner / operator:** Rich (CaraCode).
+- **Nature:** personal dev tool, possibly published. Right-sized for one person
+  on localhost: no accounts, no server, no sync, no configuration beyond
+  installing it.
+- **Status:** Spec in progress · settled: Astro only, pin lifecycle, pins-only
+  writes, free-text pins, Claude skill covers pins not CMS · open: see "Open
+  questions" · next: pin anchoring and the in-page UI · 2026-09-23.
 
 ---
 
 ## Purpose & scope
 
-<The problem context: what pain forces this to exist, in concrete terms.>
+Two situations keep coming up when Rich builds Astro sites.
+
+1. **A quick pass of tweaks.** He's looking at a page in local dev and notices a
+   dozen small things. Describing each one to Claude in words ("the second card
+   in the features section, the heading is too big") is slow, and Claude then
+   has to work out which element he meant.
+2. **Defining CMS content.** When a site gets a CMS, the real design work is
+   deciding what's editable: this hero is an image or a video, it has an
+   optional CTA with a URL, each feature card has an uploaded image and an icon.
+   That's easiest to decide while looking at the page, pointing at each part.
+
+Both come down to the same act: point at an element, say something about it,
+and hand the pile to Claude.
 
 ### In scope
 
-- <…>
+- An Astro dev-toolbar app for placing pins on elements and writing a note on each.
+- Pin markers shown on the page, and a list of pins for the current page.
+- Pin status: open → review → done, with done pins hidden by default.
+- Pins stored as JSON in the site repo.
+- A Claude skill, shipped with the package, that teaches Claude the file format
+  and how to work through pins.
 
 ### Out of scope (explicitly)
 
-<As load-bearing as the in list. Name where each excluded concern lives instead.>
-
-- <…>
+- **Editing source code.** carapin only writes pin files. Claude makes the
+  changes. (Settled: keeps a clean line between what's recorded and what changed.)
+- **Frameworks other than Astro.** Next.js, SvelteKit etc. would each need their
+  own way of finding elements and their own toolbar. Not v1.
+- **Generating CMS schemas.** carapin records what content Rich wants where. It
+  does not turn that into a Tina (or any) schema. Every site needs a different
+  CMS approach, so that step stays a normal conversation with Claude.
+- **Anything outside local dev.** No production widget, no multi-user, no
+  client feedback. That's what Vivid is for.
+- **Structured field-definition forms.** See "Pins are free text" below.
 
 ---
 
 ## Core concept
 
-<The central mental model — the thing that, if conflated, makes the product messy. Often: what the fundamental unit is, what its captured against, what it accumulates.>
+**A pin is a note attached to an element, with a status.** Everything else is a
+detail of how it's placed, shown, or stored.
 
-## <Domain sections — access model, workflows, the product shape>
+The mistake to avoid is treating "tweak" pins and "CMS" pins as two different
+features with two different UIs. They are the same thing: Rich points at an
+element and writes what he wants. A CMS pin just says something like "image or
+video, optional CTA with URL" instead of "reduce the padding". Claude can tell
+the difference from the text, and a pin can carry an optional label (e.g.
+`content`) to make it explicit.
 
-<The bulk of the spec. Freeform: roles + capability matrix, status workflows,
-key user journeys — whatever this product demands. Decisions here carry their WHY
-and the rejected alternative.>
+## Pins are free text
+
+Rich doesn't want defining content to be a click-heavy experience. The earlier
+idea was a form with fixed field types (image, video, link, icon, repeatable
+group). That's rejected for v1: it's slower than typing a sentence, and a fixed
+type list would bake in one CMS's view of content.
+
+So a pin's body is free text. Claude does the interpretation, which it's good
+at, and asks when something is ambiguous.
+
+**Context:** the current CMS lean is **TinaCMS**. That doesn't change carapin,
+but it's worth knowing when Claude reads content pins.
+
+## Pin lifecycle
+
+- **open** — Rich created it. Nothing has happened yet.
+- **review** — Claude has made the change and added a short note on what it
+  did. Rich needs to look.
+- **done** — Rich has checked it. Done pins are hidden by default, with a toggle
+  to show them.
+
+Rich can move a pin back from review to open if the change isn't right, and add
+to the note. Claude never marks a pin done; only Rich does.
+
+*Why three states and not two:* with only open/done, Claude would either close
+pins Rich hasn't checked, or leave finished work looking untouched. "review" is
+the handoff.
 
 ## Data model (entities)
 
-<Entities and relationships, not schema. One line each: what it is, what it belongs
-to, what it carries conceptually.>
+- **Pin** — belongs to one page. Carries: the note text, optional label, status,
+  where the element is (see "Anchoring"), created/updated times, and Claude's
+  resolution note once it has acted.
+- **Page** — a URL path in the site. Owns a list of pins. One JSON file per page.
 
-- **<Entity>** — <…>
+## Anchoring
+
+How a pin finds its element again after the page changes. (Draft, to settle.)
+
+Record several anchors, because each one breaks differently:
+
+- **Source location** — Astro dev mode adds `data-astro-source-file` and
+  `data-astro-source-loc` to rendered elements. This is the most useful anchor
+  for Claude, since it points straight at the code. It doesn't identify one
+  instance when a component renders in a loop (every feature card has the same
+  source location).
+- **CSS selector** — identifies the exact instance on the page, but breaks when
+  markup changes.
+- **Text snippet** — the element's visible text, trimmed. Helps a human (and
+  Claude) recognise the element, and helps re-find it.
+
+*Lesson from Vivid:* when a pin can't find its element, show it as "lost" in the
+pin list rather than guessing and attaching it to the wrong thing.
 
 ## Functional requirements
 
-<Grouped per surface (endpoint, dashboard, widget, …). Bullets of observable
-behavior.>
+**Toolbar app**
+- Turn pin mode on, hover to highlight elements, click to place a pin, type a note.
+- Show pin markers on the page. Clicking a marker opens its note.
+- List the current page's pins, filterable by status. Done hidden by default.
+- Change a pin's status; edit or delete a pin.
+
+**Storage**
+- Pins are saved via the Astro dev server to `.carapin/` in the site repo, one
+  JSON file per page. Committed or ignored is the site's choice; carapin doesn't
+  decide.
+- Changes Claude makes to the JSON show up in the toolbar without a reload.
+
+**Claude skill**
+- Explains the file format and the lifecycle.
+- "Work the pins": go through open pins, make the changes, move each to review
+  with a short note.
 
 ## Non-functional requirements
 
-<Only the load-bearing ones, each with its because. Name the single most
-load-bearing one explicitly.>
+- **The files are the source of truth (most load-bearing).** Claude and the
+  toolbar both write to the same JSON. The dev server must re-read the file
+  before every write and never hold its own copy in memory, or one side
+  silently overwrites the other.
+- **Zero footprint outside dev.** Nothing is injected into production builds.
+- **Doesn't get in the way of the page.** When pin mode is off, markers and
+  overlays must not block clicks or change layout. (Vivid lesson: overlays
+  catching clicks meant for the page.)
+- **The JSON is readable by eye.** Pretty-printed, stable key order, so diffs
+  are clean and Claude can read it without tooling.
 
 ## Intended tech stack
 
-<THIN. One line per choice with its why. Non-obvious rejections get a "### Why not X" subsection recording the reasoning — it stops a later session re-proposing it. If this section wants to be pages, it notes/technical-architecture.md instead.>
+- **Astro integration + Dev Toolbar App API** — the toolbar already exists in
+  every Astro project, so there's no widget to inject or server to run.
+- **Dev-server side via the integration's `astro:server:setup` hook** — receives
+  pin writes from the toolbar and writes the files.
+- **pnpm workspace:** `packages/carapin` (the published package) + `playground/`
+  (an Astro site with a hero, features grid and CTA to test against).
+
+### Why not Vivid
+
+Vivid is a hosted, multi-user feedback tool with accounts and a Convex backend.
+For one person on localhost, sending notes to production and pulling them back
+down adds steps and gives Claude nothing extra. carapin keeps everything in the
+repo, next to the code it's about.
 
 ## Scope discipline (v1 vs later)
 
-- **v1:** <…>
-- **Later:** <…>
+- **v1:** pins with free-text notes, the three-state lifecycle, per-page JSON,
+  the Claude skill for working pins.
+- **Later:** other frameworks; screenshots attached to pins; a cross-page pin
+  list; a "content" helper for the CMS step.
 
 ## Open questions & to-verify
 
-<Genuinely open product questions, plus "verify at build time" items — live API
-details to confirm rather than assume when spec becomes implementation.>
-
-- <…>
+- **Pins on repeated components.** A feature card rendered in a loop: does a pin
+  mean "this card" or "every card"? Lean: record the instance (selector) and the
+  source location, and let the note say which. Next question to answer.
+- **The in-page UI.** Where the note input appears (next to the element, or in
+  the toolbar panel), and how markers look.
+- **Package name.** `carapin` or `@caracode/pins`? Check npm availability.
+- **Screenshots.** A cropped screenshot per pin would help Claude, but costs
+  complexity. Lean: not in v1, since Claude can open the page itself.
+- **Verify at build time:** the current Dev Toolbar App API (client ↔ server
+  messaging), and that the `data-astro-source-*` attributes still exist and are
+  present on elements inside components.
