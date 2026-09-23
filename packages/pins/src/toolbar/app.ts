@@ -19,7 +19,7 @@ export default defineToolbarApp({
       close: () => app.toggleState({ state: false }),
     });
     // Layer first so the drawer stacks above the markers.
-    canvas.append(style, panel.layer.root, panel.drawer);
+    canvas.append(style, panel.layer.root, panel.drawer, panel.tab);
 
     server.on<PinsMessage>(EVENTS.pins, (msg) => panel.onPins(msg));
     server.on<ResultMessage>(EVENTS.result, (msg) => panel.onResult(msg));

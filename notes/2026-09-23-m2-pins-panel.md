@@ -5,7 +5,7 @@
 
 # M2 — Pins, threads and the panel
 
-Status: **M2 shipped; follow-up Phase 4 (drawer placement) in progress** · Last updated: 2026-09-23
+Status: **M2 shipped, incl. follow-up Phase 4 (drawer placement); Rich's look-and-feel checks outstanding** · Last updated: 2026-09-23
 
 **State detail:** M1 proved the round trip with a provisional file shape and a
 plain-text panel. M2 replaces both with the real thing: the pin file format,
@@ -193,7 +193,7 @@ spacing/type/colour tokens; illustrative for copy and sample data.
 
 ---
 
-### Phase 4 — Drawer placement: push, right, left  <!-- ☐ TODO · follow-up 2026-09-23 -->
+### Phase 4 — Drawer placement: push, right, left  <!-- ☑ DONE 2026-09-23 · follow-up -->
 
 Rich's first look (2026-09-23): the right-docked drawer covers the right 400px of the page, so
 nothing there can be pinned, and markers there are hidden. Supersedes Decision 10's "docked right".
@@ -220,10 +220,10 @@ nothing there can be pinned, and markers there are hidden. Supersedes Decision 1
 viewport (sticky headers, cookie bars) still extend under the drawer. Their right edge can be
 covered; switch to `left` to reach it.
 
-- [ ] Placement setting + control, persisted, default `push`.
-- [ ] Push with the 1280px fallback; page restored exactly on close/switch.
-- [ ] Tuck in `right`/`left` during pin mode; expands for the composer.
-- [ ] Tests for the pure parts (effective placement from setting + window width; storage fallback).
+- [x] Placement setting + control, persisted, default `push`.
+- [x] Push with the 1280px fallback; page restored exactly on close/switch.
+- [x] Tuck in `right`/`left` during pin mode; expands for the composer.
+- [x] Tests for the pure parts (effective placement from setting + window width; storage fallback).
 
 **Verify:**
 1. Typecheck, build, tests; prod grep clean.
@@ -236,6 +236,14 @@ covered; switch to `left` to reach it.
 5. Reload → placement remembered.
 6. Window < 1280 with `push` → overlays on the right, control says so.
 7. **(HUMAN)** Push mode on Rich's widescreen feels right; the tuck/expand motion is quick, not fussy.
+
+*Verified 2026-09-23:* orchestrator: typecheck clean, 127 tests pass; at a 1716px window, opening Pins narrowed `html` from 1701px to 1301px with all three feature cards left of the drawer. Builder, in the browser: pinned the rightmost card title in push mode (marker exactly on it, no tuck); closing left `html` with only `lang` and no inline styles on `html`/`body`; right and left modes tuck to a 28px tab in pin mode, expand for the composer, re-tuck after save; setting survives reload; at 1200px push overlays right with an amber Push segment and "window under 1280px" note, and re-applies when widened.
+
+*Files:* `packages/pins/src/toolbar/{dock.ts,panel.ts,page-layer.ts,styles.ts,dom.ts,app.ts}`, `packages/pins/test/dock.test.ts`.
+
+**Contract:** `src/toolbar/dock.ts` — `Placement` `push|right|left` (default `push`) in `localStorage` key `caracode-pins:placement` (try/catch → `push`); `effectivePlacement(setting, innerWidth)` (push below 1280 → overlay right, `fallback: true`); `shouldTuck`; `PagePush` narrows the page via one removable `<style>` in `<head>` (`html { margin-right: 400px !important; width: auto !important }`), never touching `html`/`body` attributes. `PinsPanel.applyPlacement()` (`panel.ts:470`) is the single sync point (page push, drawer `data-side|mode|tucked` + `inert`, tab, control, fallback note), run on render, resize, pin-mode change and open/close. A tab or marker click expands the drawer by hand. `PageLayer` takes `pageArea()` → `{left, right}`.
+
+**Watch-out:** a site using Astro view transitions (`ClientRouter`) may drop the push `<style>` on a head swap while the panel stays open. The playground doesn't use them; if a real site does, re-apply on `astro:after-swap`.
 
 ## Exit verify (milestone M2)
 

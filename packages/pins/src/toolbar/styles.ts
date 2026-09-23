@@ -85,6 +85,7 @@ export const STYLES = /* css */ `
 
   /* Shadows */
   --cp-shadow-drawer: -12px 0 32px rgba(0,0,0,.35);
+  --cp-shadow-drawer-left: 12px 0 32px rgba(0,0,0,.35);
   --cp-shadow-marker: 0 1px 2px rgba(0,0,0,.5), 0 0 0 2px rgba(255,255,255,.85);
 
   /* Layout */
@@ -148,7 +149,48 @@ export const STYLES = /* css */ `
   -webkit-font-smoothing: antialiased;
   text-align: left;
   color-scheme: dark;                /* native scrollbars, caret and textarea chrome match the drawer */
+  transition: transform .16s cubic-bezier(.2,.8,.2,1);
 }
+/* Placement (Phase 4, dock.ts). Push: the page is narrowed, so the drawer sits flat beside it. */
+.cp-drawer[data-mode="push"] { box-shadow: none; }
+.cp-drawer[data-side="left"] {
+  right: auto; left: 0;
+  border-left: 0; border-right: 1px solid var(--cp-line-1);
+  box-shadow: var(--cp-shadow-drawer-left);
+}
+/* Tucked: slid off its edge while pin mode is on; the tab stands in for it. */
+.cp-drawer[data-tucked] { transform: translateX(100%); box-shadow: none; }
+.cp-drawer[data-tucked][data-side="left"] { transform: translateX(-100%); }
+
+.cp-tab {
+  position: fixed; top: 50%; right: 0; z-index: var(--cp-z-drawer);
+  transform: translateY(-50%);
+  appearance: none; margin: 0; width: 28px; padding: var(--cp-space-5) 0 var(--cp-space-4);
+  display: flex; flex-direction: column; align-items: center; gap: var(--cp-space-3);
+  background: var(--cp-bg-0); color: var(--cp-accent);
+  border: 1px solid var(--cp-line-2); border-right: 0;
+  border-radius: var(--cp-radius-3) 0 0 var(--cp-radius-3);
+  box-shadow: -6px 0 18px rgba(0,0,0,.3);
+  font: 500 var(--cp-text-xs)/1 var(--cp-font-mono);
+  cursor: pointer; -webkit-font-smoothing: antialiased;
+  animation: cp-tab-in .16s ease-out;
+  transition: background .08s ease, border-color .08s ease;
+}
+.cp-tab[data-side="left"] {
+  right: auto; left: 0;
+  border-right: 1px solid var(--cp-line-2); border-left: 0;
+  border-radius: 0 var(--cp-radius-3) var(--cp-radius-3) 0;
+  box-shadow: 6px 0 18px rgba(0,0,0,.3);
+  animation-name: cp-tab-in-left;
+}
+.cp-tab svg { width: 14px; height: 14px; }
+.cp-tab .n { color: var(--cp-fg-1); font-variant-numeric: tabular-nums; }
+.cp-tab:hover { background: var(--cp-bg-2); border-color: var(--cp-line-3); }
+.cp-tab:hover .n { color: var(--cp-fg-0); }
+.cp-tab:active { background: var(--cp-bg-3); }
+.cp-tab:focus-visible { outline: none; box-shadow: var(--cp-focus-ring); }
+@keyframes cp-tab-in { from { opacity: 0; transform: translate(6px, -50%); } }
+@keyframes cp-tab-in-left { from { opacity: 0; transform: translate(-6px, -50%); } }
 .cp-drawer *:focus-visible { outline: none; box-shadow: var(--cp-focus-ring); }
 .cp-drawer code { font: 400 11px var(--cp-font-mono); color: var(--cp-fg-0); }
 
@@ -161,6 +203,30 @@ export const STYLES = /* css */ `
 .cp-title { font-size: var(--cp-text-lg); font-weight: 600; letter-spacing: -0.01em; }
 .cp-page { font: 400 var(--cp-text-xs)/1 var(--cp-font-mono); color: var(--cp-fg-2); padding: 3px 6px; border: 1px solid var(--cp-line-2); border-radius: var(--cp-radius-1); max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .spacer { flex: 1; }
+
+/* Placement: a quiet three-way segmented control in the header. */
+.cp-seg {
+  display: inline-flex; gap: var(--cp-space-1); padding: var(--cp-space-1); flex: none;
+  border: 1px solid var(--cp-line-2); border-radius: var(--cp-radius-2);
+}
+.cp-seg-btn {
+  appearance: none; margin: 0; padding: 0; border: 0;
+  width: 22px; height: 22px; display: grid; place-items: center;
+  border-radius: var(--cp-radius-1); background: transparent; color: var(--cp-fg-2);
+  cursor: pointer; transition: background .08s ease, color .08s ease;
+}
+.cp-seg-btn svg { width: 14px; height: 14px; }
+.cp-seg-btn:hover { background: var(--cp-bg-2); color: var(--cp-fg-0); }
+.cp-seg-btn:active { background: var(--cp-bg-3); }
+.cp-seg-btn[aria-pressed="true"] { background: var(--cp-bg-3); color: var(--cp-fg-0); }
+/* Push chosen but the window is too narrow: it overlays, and says so. */
+.cp-seg-btn[data-fallback] { color: var(--cp-review-text); }
+.cp-placement-note {
+  flex: none; padding: var(--cp-space-3) var(--cp-space-5) var(--cp-space-3) var(--cp-space-6);
+  background: var(--cp-bg-1); border-bottom: 1px solid var(--cp-line-1);
+  font-size: var(--cp-text-xs); color: var(--cp-fg-2);
+}
+.cp-placement-note b { font-weight: 500; color: var(--cp-review-text); }
 
 .cp-btn {
   appearance: none; font: 500 var(--cp-text-sm)/1 var(--cp-font-ui);
@@ -407,6 +473,7 @@ export const STYLES = /* css */ `
 .cp-stale-note { padding: var(--cp-space-4) var(--cp-space-6) 0; font-size: var(--cp-text-xs); color: var(--cp-fg-2); flex: none; }
 
 @media (prefers-reduced-motion: reduce) {
-  .cp-marker, .cp-btn, .cp-row, .cp-switch .track, .cp-switch .track::after { transition: none; }
+  .cp-marker, .cp-btn, .cp-row, .cp-switch .track, .cp-switch .track::after, .cp-drawer, .cp-seg-btn, .cp-tab { transition: none; }
+  .cp-tab { animation: none; }
 }
 `;

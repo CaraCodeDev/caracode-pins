@@ -144,5 +144,6 @@ Start the playground with `pnpm dev` in the repo root, open http://localhost:435
 - [ ] In a Claude Code session in `playground/`, say "work the pins" → the changes are made, and the panel shows those pins in review with Claude's comment.
 - [ ] Reply to one of them → it goes back to open; "work the pins" again fixes just that one.
 - [ ] Mark a pin done → it disappears; "Show done" brings it back with the same number.
+- [ ] Drawer placement: default Push narrows the page so nothing is covered; switch to Right or Left, turn on pin mode → the drawer tucks into a tab and slides back when you click an element.
 - [ ] Overall: does the drawer look and feel right for a pass of a dozen pins?
 

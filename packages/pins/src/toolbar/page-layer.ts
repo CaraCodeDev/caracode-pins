@@ -43,8 +43,8 @@ export class PageLayer {
     private readonly opts: {
       onMarkerClick: (id: string) => void;
       onDomChange: () => void;
-      /** Left edge of the drawer in viewport px (the page's visible right edge). */
-      drawerLeft: () => number;
+      /** The horizontal span of the page not covered by the drawer, viewport px. */
+      pageArea: () => { left: number; right: number };
     },
   ) {
     this.selectedBox = h('div', { class: 'cp-box cp-box-selected', attrs: { hidden: true } });
@@ -158,9 +158,10 @@ export class PageLayer {
   }
 
   private visibleArea(): Box {
-    const width = Math.min(document.documentElement.clientWidth || innerWidth, this.opts.drawerLeft());
+    const { left, right } = this.opts.pageArea();
+    const width = Math.min(document.documentElement.clientWidth || innerWidth, right);
     const height = document.documentElement.clientHeight || innerHeight;
-    return { left: 0, top: 0, right: width, bottom: height };
+    return { left: Math.max(0, left), top: 0, right: width, bottom: height };
   }
 
   private update(): void {

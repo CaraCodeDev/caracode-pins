@@ -1,6 +1,7 @@
 /**
  * The Pins drawer (Decision 10) and everything it drives: the list, a pin's
- * thread, the composer (Decision 4), the markers (Decision 6) and pin mode.
+ * thread, the composer (Decision 4), the markers (Decision 6), pin mode, and
+ * where the drawer sits (Phase 4: push / right / left, see ./dock.ts).
  *
  * Rendering rule: the two text boxes (reply, composer note) are created once and
  * never replaced. Everything around them is re-rendered from state, so a file
@@ -19,6 +20,18 @@ import {
   type ResultMessage,
 } from '../types.js';
 import { capture, fileOf } from './capture.js';
+import {
+  DRAWER_WIDTH,
+  effectivePlacement,
+  PagePush,
+  PLACEMENTS,
+  PUSH_MIN_WIDTH,
+  readPlacement,
+  shouldTuck,
+  writePlacement,
+  type EffectivePlacement,
+  type Placement,
+} from './dock.js';
 import { button, h, icon, kbd, MOD_KEY } from './dom.js';
 import {
   baseName,
@@ -55,6 +68,13 @@ const OP_FAILED: Record<Operation, string> = {
 
 const BAD_PATH = "This page's path can't be used as a pin file name.";
 
+const PLACEMENT_LABEL: Record<Placement, string> = {
+  push: 'Push the page aside',
+  right: 'Overlay on the right',
+  left: 'Overlay on the left',
+};
+const FALLBACK_NOTE = `overlaying, window under ${PUSH_MIN_WIDTH}px wide`;
+
 export interface PanelOptions {
   path: string;
   send: (event: string, payload: unknown) => void;
@@ -64,6 +84,8 @@ export interface PanelOptions {
 
 export class PinsPanel {
   readonly drawer: HTMLElement;
+  /** The slim tab the drawer tucks into (overlay placements, pin mode on). */
+  readonly tab: HTMLButtonElement;
   readonly layer: PageLayer;
   private readonly pinMode: PinMode;
   private readonly key: string | null;
@@ -93,6 +115,16 @@ export class PinsPanel {
   private markerSig = '';
   private markerEls: Element[] = [];
 
+  // --- Placement (Phase 4) ------------------------------------------------------
+  private placement: Placement = readPlacement();
+  private effective: EffectivePlacement = effectivePlacement(this.placement, innerWidth);
+  /** Expanded by hand while it would otherwise be tucked (the tab, a marker click). */
+  private expanded = false;
+  private readonly push = new PagePush();
+  private readonly placementBtns = new Map<Placement, HTMLButtonElement>();
+  private readonly placementNote: HTMLDivElement;
+  private readonly tabCount: HTMLSpanElement;
+
   // --- Elements -------------------------------------------------------------
   private readonly pinModeBtn: HTMLButtonElement;
   private readonly errorSlot: HTMLDivElement;
@@ -117,7 +149,7 @@ export class PinsPanel {
         if (this.refind()) this.render();
         else this.syncLayer();
       },
-      drawerLeft: () => (this.isOpen ? this.drawer.getBoundingClientRect().left : innerWidth),
+      pageArea: () => this.pageArea(),
     });
 
     this.pinMode = new PinMode({
@@ -130,14 +162,44 @@ export class PinsPanel {
       'aria-pressed': 'false',
       title: 'Pin mode: click an element to pin it (Esc leaves)',
     });
+    const seg = h('div', { class: 'cp-seg', attrs: { role: 'group', 'aria-label': 'Panel placement' } });
+    for (const p of PLACEMENTS) {
+      const b = h(
+        'button',
+        { class: 'cp-seg-btn', attrs: { type: 'button', 'aria-pressed': 'false', 'aria-label': PLACEMENT_LABEL[p] }, on: { click: () => this.setPlacement(p) } },
+        icon(`dock-${p}`),
+      );
+      this.placementBtns.set(p, b);
+      seg.append(b);
+    }
     const head = h(
       'header',
       { class: 'cp-head' },
       h('span', { class: 'cp-title', text: 'Pins' }),
       h('span', { class: 'cp-page', text: opts.path, attrs: { title: opts.path } }),
       h('span', { class: 'spacer' }),
+      seg,
       this.pinModeBtn,
       button([icon('close')], 'icon quiet', () => opts.close(), { 'aria-label': 'Close panel', title: 'Close' }),
+    );
+
+    this.placementNote = h('div', { class: 'cp-placement-note', attrs: { hidden: true, role: 'status' } }, h('b', { text: 'Push' }), ` · ${FALLBACK_NOTE}`);
+
+    this.tabCount = h('span', { class: 'n' });
+    this.tab = h(
+      'button',
+      {
+        class: 'cp-tab',
+        attrs: { type: 'button', hidden: true, 'aria-label': 'Show the Pins panel', title: 'Pin mode is on. Click to show the panel' },
+        on: {
+          click: () => {
+            this.expanded = true;
+            this.render();
+          },
+        },
+      },
+      icon('pin'),
+      this.tabCount,
     );
 
     this.errorSlot = h('div', { class: 'cp-errors' });
@@ -209,6 +271,7 @@ export class PinsPanel {
       'aside',
       { class: 'cp-drawer', attrs: { 'aria-label': 'Pins' } },
       head,
+      this.placementNote,
       this.listView,
       this.threadView,
       this.composerView,
@@ -234,6 +297,8 @@ export class PinsPanel {
         },
         { capture: true, signal: this.session.signal },
       );
+      // Push's 1280px fallback is re-evaluated as the window changes.
+      window.addEventListener('resize', () => this.applyPlacement(), { signal: this.session.signal });
       this.layer.start();
       this.refind();
       this.render();
@@ -243,6 +308,8 @@ export class PinsPanel {
       this.session?.abort();
       this.session = null;
       this.layer.stop();
+      this.expanded = false;
+      this.applyPlacement(); // closed: the page is restored exactly
     }
   }
 
@@ -287,6 +354,7 @@ export class PinsPanel {
         this.composer = null;
         this.composerBox.value = '';
         if (this.view === 'composer') this.view = 'list';
+        this.expanded = false; // tucks again if pin mode is still on
         break;
       case 'reply':
         if (this.replyBox.value === p.text && this.threadKey === p.id) this.replyBox.value = '';
@@ -364,9 +432,73 @@ export class PinsPanel {
 
   private setPinMode(on: boolean): void {
     if (on && (!this.key || !this.isOpen)) return;
+    if (on !== this.pinMode.on) this.expanded = false;
     if (on) this.pinMode.enable();
     else this.pinMode.disable();
     this.pinModeBtn.setAttribute('aria-pressed', String(this.pinMode.on));
+    this.applyPlacement();
+  }
+
+  private setPlacement(p: Placement): void {
+    this.placement = p;
+    writePlacement(p);
+    this.expanded = false;
+    this.render();
+  }
+
+  private tucked(): boolean {
+    return shouldTuck({
+      mode: this.effective.mode,
+      pinMode: this.pinMode.on,
+      composerOpen: this.view === 'composer' && this.composer !== null,
+      expanded: this.expanded,
+    });
+  }
+
+  /** The part of the viewport the drawer doesn't cover, for the markers. */
+  private pageArea(): { left: number; right: number } {
+    if (!this.isOpen || this.tucked()) return { left: 0, right: innerWidth };
+    const w = this.drawer.offsetWidth || DRAWER_WIDTH;
+    return this.effective.side === 'left' ? { left: w, right: innerWidth } : { left: 0, right: innerWidth - w };
+  }
+
+  /**
+   * Bring the page, the drawer, the tab and the control in line with the setting,
+   * the window width, pin mode and the view. Cheap and idempotent: called from
+   * render(), on resize, and when pin mode or the open state changes.
+   */
+  private applyPlacement(): void {
+    const prevSide = this.effective.side;
+    this.effective = effectivePlacement(this.placement, innerWidth);
+    const { mode, side, fallback } = this.effective;
+
+    if (this.isOpen && mode === 'push') this.push.apply(DRAWER_WIDTH);
+    else this.push.release();
+
+    const tucked = this.isOpen && this.tucked();
+    if (side !== prevSide) {
+      // Jump to the other side; don't slide across the page.
+      this.drawer.style.transition = 'none';
+      this.drawer.dataset.side = side;
+      void this.drawer.offsetWidth;
+      this.drawer.style.transition = '';
+    }
+    this.drawer.dataset.side = side;
+    this.drawer.dataset.mode = mode;
+    this.drawer.toggleAttribute('data-tucked', tucked);
+    this.drawer.inert = tucked;
+    this.tab.hidden = !tucked;
+    this.tab.dataset.side = side;
+
+    for (const [p, b] of this.placementBtns) {
+      b.setAttribute('aria-pressed', String(p === this.placement));
+      const fb = p === 'push' && fallback;
+      b.toggleAttribute('data-fallback', fb);
+      b.title = fb ? `Push · ${FALLBACK_NOTE}` : PLACEMENT_LABEL[p];
+    }
+    this.placementNote.hidden = !fallback;
+
+    if (this.isOpen) this.layer.schedule(false);
   }
 
   /** Escape, in order: cancel the composer, cancel a delete confirm, leave pin mode. */
@@ -390,6 +522,7 @@ export class PinsPanel {
   /** Pin mode click: open the composer on this element (or re-pick, keeping the note). */
   private pick(el: Element): void {
     if (!this.key) return;
+    this.expanded = false; // the composer expands the drawer; closing it tucks again
     this.saveReplyDraft();
     this.composer = { el, anchor: capture(el) };
     this.view = 'composer';
@@ -399,6 +532,7 @@ export class PinsPanel {
   }
 
   private cancelComposer(): void {
+    this.expanded = false;
     this.composer = null;
     this.composerRequest = null;
     this.composerBox.value = '';
@@ -414,6 +548,7 @@ export class PinsPanel {
   }
 
   private openThread(key: string, scroll: boolean): void {
+    if (this.tucked()) this.expanded = true; // a marker clicked while tucked: show its thread
     if (this.view === 'composer') {
       this.composer = null;
       this.composerRequest = null;
@@ -491,6 +626,8 @@ export class PinsPanel {
     // Error banners: under the subbar in the list (as in the mockup), at the top of the other views.
     if (this.view === 'list') this.listView.insertBefore(this.errorSlot, this.listView.children[1] ?? null);
     else (this.view === 'thread' ? this.threadView : this.composerView).prepend(this.errorSlot);
+    this.tabCount.textContent = String(filterPins(this.numbered(), this.showDone).length);
+    this.applyPlacement();
     if (this.isOpen) this.syncLayer();
   }
 
