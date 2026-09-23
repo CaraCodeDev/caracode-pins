@@ -1,6 +1,6 @@
 import { defineToolbarApp } from 'astro/toolbar';
 import { pageKey } from '../pages.js';
-import { EVENTS, type Pin, type PinsMessage } from '../types.js';
+import { EVENTS, type CreateRequest, type Pin, type PinsMessage, type ResultMessage } from '../types.js';
 import { capture } from './capture.js';
 
 const PANEL_HEADING = 'Pins';
@@ -32,6 +32,8 @@ export default defineToolbarApp({
       .bar { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; }
       button { font: inherit; font-size: 14px; padding: 6px 12px; border-radius: 6px; cursor: pointer;
         border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.08); color: #fff; }
+      input { font: inherit; font-size: 14px; padding: 6px 8px; border-radius: 6px; min-width: 200px;
+        border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: #fff; }
       button[aria-pressed="true"] { background: #b33ffd; border-color: #b33ffd; }
       .status { font-size: 13px; }
       .error { color: #ff8a8a; margin-bottom: 8px; }
@@ -53,9 +55,15 @@ export default defineToolbarApp({
     bar.className = 'bar';
     const toggle = document.createElement('button');
     toggle.type = 'button';
+    // Provisional (Phase 2 replaces this with the composer): the note for the
+    // next pin is typed here first, then the element is clicked.
+    const noteInput = document.createElement('input');
+    noteInput.type = 'text';
+    noteInput.placeholder = 'Note for the next pin';
+    noteInput.setAttribute('aria-label', 'Note for the next pin');
     const status = document.createElement('p');
     status.className = 'status';
-    bar.append(toggle, status);
+    bar.append(toggle, noteInput, status);
 
     const errorLine = document.createElement('p');
     errorLine.className = 'error';
@@ -84,6 +92,11 @@ export default defineToolbarApp({
 
     server.on<PinsMessage>(EVENTS.pins, (msg) => {
       if (msg.key === key) renderPins(msg);
+    });
+    server.on<ResultMessage>(EVENTS.result, (msg) => {
+      if (msg.key !== key) return;
+      errorLine.hidden = msg.ok;
+      errorLine.textContent = msg.ok ? '' : msg.error;
     });
     const refresh = () => server.send(EVENTS.list, { path });
 
@@ -188,7 +201,13 @@ export default defineToolbarApp({
         status.textContent = "This page's path can't be used as a pin file name.";
         return;
       }
-      server.send(EVENTS.add, { path, pin: capture(el) });
+      const text = noteInput.value.trim();
+      if (!text) {
+        status.textContent = 'Type a note first, then click the element.';
+        return;
+      }
+      server.send(EVENTS.create, { path, anchor: capture(el), text } satisfies CreateRequest);
+      noteInput.value = '';
       hovered = el;
       placeOverlay();
       overlay.setAttribute('data-saved', '');
@@ -214,20 +233,22 @@ export default defineToolbarApp({
   },
 });
 
+/** Provisional list item (Phase 2 replaces it). Hand-edited pins may lack fields. */
 function renderPin(pin: Pin): HTMLLIElement {
   const li = document.createElement('li');
+  const anchor = pin.anchor ?? ({} as Partial<Pin['anchor']>);
   const text = document.createElement('div');
-  text.textContent = pin.text ? `“${pin.text}”` : `<${pin.tag || 'element'}>`;
+  text.textContent = `[${pin.status ?? '?'}] ${anchor.text ? `“${anchor.text}”` : `<${anchor.tag || 'element'}>`}`;
   li.append(text);
-  if (pin.note) {
+  for (const c of Array.isArray(pin.comments) ? pin.comments : []) {
     const note = document.createElement('div');
     note.className = 'note';
-    note.textContent = pin.note;
+    note.textContent = `${c?.author ?? '?'}: ${c?.text ?? ''}`;
     li.append(note);
   }
   const meta = document.createElement('div');
   meta.className = 'meta';
-  meta.textContent = [pin.source ?? '(no source location)', pin.selector].join('\n');
+  meta.textContent = [anchor.source ?? '(no source location)', anchor.selector ?? ''].join('\n');
   meta.style.whiteSpace = 'pre-wrap';
   li.append(meta);
   return li;

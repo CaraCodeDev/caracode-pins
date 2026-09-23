@@ -5,7 +5,7 @@
 
 # M2 — Pins, threads and the panel
 
-Status: **Spec written · next: mockup, then build** · Last updated: 2026-09-23
+Status: **Phase 1 shipped · next: Phase 2 (panel and markers, wired)** · Last updated: 2026-09-23
 
 **State detail:** M1 proved the round trip with a provisional file shape and a
 plain-text panel. M2 replaces both with the real thing: the pin file format,
@@ -132,25 +132,27 @@ From notes/2026-09-23-m1-spike.md → "What's built so far" (read it; this is a 
 
 ## What's built so far (the contract)
 
-<!-- empty at spec time -->
+- **Phase 1 — pin file + operations.** Format per Decision 1 in `packages/pins/src/types.ts` (`Pin`, `Anchor`, `Comment`, `PinFile`). `src/store.ts`: `createPin`, `replyToPin` (Decision 2 via `statusAfterComment`), `markPinDone`, `deletePin`, all through one `updatePins` (re-read, one change, write; throws `PinError` with `code` ∈ `invalid-key|invalid-file|invalid-input|not-found|empty-text` and writes nothing on failure). Unknown fields and existing key order preserved; text trimmed, capped at 20,000 chars. Messages (client → server) `caracode-pins:{list,create,reply,done,delete}` with `{ path, … , requestId? }`; the server answers every mutation with one `caracode-pins:result` (`ok`, `op`, `key`, `id`, echoed `requestId`, `error`) and on success a fresh `caracode-pins:pins` `{ key, pins, error? }` (also sent after `list` and by the watcher). **Panel replies are always written as `author: "human"`; the server ignores any author the client sends.** `capture()` in `src/toolbar/capture.ts` returns an `Anchor`. Tests `test/store.test.ts`, `test/server.test.ts` (79 total).
 
 ## Phases
 
-### Phase 1 — The pin file and its operations  <!-- ☐ TODO -->
+### Phase 1 — The pin file and its operations  <!-- ☑ DONE 2026-09-23 -->
 
 Everything the panel will ask the server to do, against the real format.
 
-- [ ] Format per Decision 1, replacing the provisional one in `src/types.ts` / `src/store.ts`.
-- [ ] Server operations: create pin (with first comment), reply (with Decision 2's status
+- [x] Format per Decision 1, replacing the provisional one in `src/types.ts` / `src/store.ts`.
+- [x] Server operations: create pin (with first comment), reply (with Decision 2's status
   rule), mark done, delete. Each **re-reads the file, applies one change, writes it back**,
   through the existing per-file queue. Operations name pins by `id`; a missing id is an
   error sent back, not a crash.
-- [ ] A file Claude or Rich edits by hand in the documented format is read correctly,
+- [x] A file Claude or Rich edits by hand in the documented format is read correctly,
   including unknown extra fields (kept on write, not dropped) and a missing optional `label`.
-- [ ] Tests for every operation and every Decision 2 transition, plus: unknown fields survive
+- [x] Tests for every operation and every Decision 2 transition, plus: unknown fields survive
   a write; a hand edit between two operations survives.
 
-*Files:* —
+*Verified 2026-09-23 (orchestrator):* typecheck + build clean; 79 tests pass (format bytes, all six Decision 2 status/author cases, done from each status, delete, missing id ×3, unknown fields + key order across 4 ops, hand edit between ops, invalid / non-object / non-array `pins` file untouched, empty text rejected, full server message round trip, 9 bad inputs → `ok: false`). Read `statusAfterComment` / `replyToPin` / `markPinDone` in `src/store.ts:101–154`: match Decisions 2–3. No browser check this phase (the interim panel is replaced in Phase 2).
+
+*Files:* `packages/pins/src/{types.ts,store.ts,index.ts}`, `packages/pins/src/toolbar/{app.ts,capture.ts}`, `packages/pins/test/{store,server}.test.ts`.
 
 ### Phase 2 — Panel and markers, wired  <!-- ☐ TODO -->
 
@@ -215,6 +217,11 @@ Change the page's markup so one pin's element disappears, and it shows as lost.*
 12. **(HUMAN)** Markers sit on their elements and stay put when scrolling.
 
 ---
+
+## Resolved decisions (2026-09-23)
+
+1. **An unknown status is left alone on a human reply** (e.g. a hand-set `"wip"`); Decision 2 only reopens `review`/`done`. (Phase 1)
+2. **A key Claude adds by hand to an existing pin lands at the end of that pin**; existing keys never move. Acceptable: diffs stay small. (Phase 1)
 
 ## Watch-outs / known limitations
 
