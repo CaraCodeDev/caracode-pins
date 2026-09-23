@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url';
 import type { AstroIntegration } from 'astro';
 import { pinIcon } from './icon.js';
 import { pageKey } from './pages.js';
+import { installSkill, SKILL_PATH } from './skill.js';
 import {
   createPin,
   deletePin,
@@ -55,6 +56,11 @@ export default function pins(): AstroIntegration {
       'astro:server:setup': ({ server, toolbar, logger }) => {
         if (!siteRoot) return;
         const pinDir = path.resolve(siteRoot, PIN_DIR);
+
+        // Dev only (siteRoot is set only for `astro dev`): never on build or preview.
+        void installSkill({ siteRoot, logger }).catch((err) => {
+          logger.warn(`Couldn't install the pins skill at ${SKILL_PATH}: ${errText(err)}`);
+        });
 
         const sendPins = async (key: string) => {
           let message: PinsMessage;
