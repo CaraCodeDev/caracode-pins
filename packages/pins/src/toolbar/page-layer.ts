@@ -173,7 +173,12 @@ export class PageLayer {
     for (const [id, b] of this.buttons) {
       const p = positions.get(id);
       b.hidden = !p;
-      if (p) b.style.transform = `translate(${p.x}px, ${p.y}px)`;
+      // Positioned with left/top, not transform: the stylesheet uses transform
+      // for the hover / pressed scale, and an inline transform would cancel it.
+      if (p) {
+        b.style.left = `${p.x}px`;
+        b.style.top = `${p.y}px`;
+      }
     }
     placeBox(this.selectedBox, this.outlined);
     placeBox(this.hoverBox, this.hovered);

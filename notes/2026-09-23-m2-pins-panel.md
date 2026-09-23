@@ -5,7 +5,7 @@
 
 # M2 — Pins, threads and the panel
 
-Status: **Phases 1–2 shipped · next: Phase 3 (visual pass, fable)** · Last updated: 2026-09-23
+Status: **M2 shipped; exit verified except Rich's look-and-feel checks (steps 11–12) · next: M3** · Last updated: 2026-09-23
 
 **State detail:** M1 proved the round trip with a provisional file shape and a
 plain-text panel. M2 replaces both with the real thing: the pin file format,
@@ -175,7 +175,7 @@ All the behaviour, structurally complete. Looks plain; Phase 3 makes it right.
 
 *Files:* `packages/pins/src/toolbar/{app.ts,panel.ts,refind.ts,placement.ts,model.ts,page-layer.ts,pin-mode.ts,styles.ts,dom.ts,capture.ts}`, `packages/pins/test/{refind,model,placement}.test.ts`, `notes/mockups/m2-panel.html`.
 
-### Phase 3 — Visual pass  <!-- ☐ TODO · build: fable -->
+### Phase 3 — Visual pass  <!-- ☑ DONE 2026-09-23 · build: fable -->
 
 The panel and markers look and feel right. Establishes carapin's design language.
 
@@ -183,11 +183,13 @@ The panel and markers look and feel right. Establishes carapin's design language
 states (list, thread, composer, empty, lost, done-shown, delete-confirm, error) and the
 spacing/type/colour tokens; illustrative for copy and sample data.
 
-- [ ] Drawer, list, thread, composer, markers and all states match the mockup.
-- [ ] Hover, focus and pressed states; keyboard focus is visible throughout.
-- [ ] Sits comfortably next to Astro's own toolbar styling (dark), without copying it.
+- [x] Drawer, list, thread, composer, markers and all states match the mockup.
+- [x] Hover, focus and pressed states; keyboard focus is visible throughout.
+- [x] Sits comfortably next to Astro's own toolbar styling (dark), without copying it.
 
-*Files:* —
+*Verified 2026-09-23 (orchestrator, in-app browser):* typecheck + 105 tests clean. Seeded a file with done / review (with a claude comment) / open+`content` label / lost pins. List: "3 pins · 1 to check", done hidden, review row amber with Claude's latest comment, label chip + status chip on pin 3, pin 4 marked lost with no marker. Opened pin 2's thread: element / source / chain header, "You" and "Claude → review" comments, reply box with "reopens the pin", prominent Mark done; the card title outlined on the page with its marker. Fable's notable fix: markers now positioned with `left/top` so the stylesheet's hover scale and pressed state work.
+
+*Files:* `packages/pins/src/toolbar/{styles.ts,panel.ts,page-layer.ts}`.
 
 ---
 
@@ -224,9 +226,9 @@ Change the page's markup so one pin's element disappears, and it shows as lost.*
 ## Resolved decisions (2026-09-23)
 
 1. **An unknown status is left alone on a human reply** (e.g. a hand-set `"wip"`); Decision 2 only reopens `review`/`done`. (Phase 1)
-3. **Exit step 8 expects four comments, not three** (step 5's reply comes first). Spec typo; behaviour correct. (Phase 2)
-4. **Mockup z-index values would cover Astro's toolbar bar** → lowered below it. (Phase 2)
-2. **A key Claude adds by hand to an existing pin lands at the end of that pin**; existing keys never move. Acceptable: diffs stay small. (Phase 1)
+2. **Exit step 8 expects four comments, not three** (step 5's reply comes first). Spec typo; behaviour correct. (Phase 2)
+3. **Mockup z-index values would cover Astro's toolbar bar** → lowered below it. (Phase 2)
+4. **A key Claude adds by hand to an existing pin lands at the end of that pin**; existing keys never move. Acceptable: diffs stay small. (Phase 1)
 
 ## Watch-outs / known limitations
 
@@ -246,6 +248,12 @@ Change the page's markup so one pin's element disappears, and it shows as lost.*
   If two markers would overlap exactly (same element pinned twice), offset the later one.
 - **Drawer width** — follow the mockup; if it proves too cramped for threads in real use,
   widen within 380–440px and note it.
+
+## Follow-ups noted (2026-09-23)
+
+- The thread's source location isn't a link (no editor-open target is specified). Rich may want `vscode://file/…`; one-line change plus a decision.
+- The pin-mode hover label sits below the element and can run off-screen near the viewport bottom; flipping it above is a small change in `page-layer.ts`.
+- A pin on a full-width section puts its marker at the section's top-left corner (hero → page corner). Fine for now; revisit if it reads badly.
 
 ## Deferred / out of scope
 

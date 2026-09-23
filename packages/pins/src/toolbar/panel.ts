@@ -688,11 +688,14 @@ export class PinsPanel {
     );
 
     const now = new Date();
+    const comments = commentsOf(pin);
+    // The comment that put the pin in review: Claude's latest, while it is in review.
+    const reviewNote = status === 'review' ? latestClaudeComment(pin) : undefined;
     this.threadBody.replaceChildren(
       h(
         'div',
         { class: 'cp-comments' },
-        ...commentsOf(pin).map((c) => {
+        ...comments.map((c) => {
           const who = c.author === 'claude' ? 'Claude' : c.author === 'human' ? 'You' : String(c.author ?? 'Unknown');
           return h(
             'div',
@@ -700,8 +703,14 @@ export class PinsPanel {
             h('span', { class: 'cp-avatar', attrs: { 'data-author': String(c.author) }, text: who.charAt(0).toUpperCase() }),
             h(
               'div',
-              {},
-              h('div', { class: 'who' }, h('span', { class: 'name', text: who }), h('span', { class: 'when', text: clockTime(c.at, now), attrs: { title: c.at ?? '' } })),
+              { class: 'text' },
+              h(
+                'div',
+                { class: 'who' },
+                h('span', { class: 'name', text: who }),
+                h('span', { class: 'when', text: clockTime(c.at, now), attrs: { title: c.at ?? '' } }),
+                c === reviewNote ? h('span', { class: 'status-note', text: '→ review' }) : null,
+              ),
               h('div', { class: 'body', text: c.text }),
             ),
           );
@@ -766,13 +775,13 @@ export class PinsPanel {
     this.composerTop.replaceChildren(
       h(
         'div',
-        { class: 'cp-thread-head', attrs: { style: 'padding-bottom: var(--cp-space-4)' } },
+        { class: 'cp-thread-head' },
         h(
           'div',
-          { class: 'nav', attrs: { style: 'margin-bottom: 0' } },
+          { class: 'nav' },
           button([icon('back'), document.createTextNode('Cancel')], 'quiet small', () => this.cancelComposer()),
           h('span', { class: 'spacer' }),
-          h('span', { class: 'cp-hint', text: `New pin · will be ${this.pins.length + 1}` }),
+          h('span', { class: 'cp-new-pin' }, 'New pin · will be ', h('span', { class: 'num', text: String(this.pins.length + 1) })),
         ),
       ),
       h(

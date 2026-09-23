@@ -66,7 +66,7 @@ that exact card, and its text. Editing that file by hand updates the panel.
 
 ☑ 2026-09-23: exit demonstrated (card 2's title → `FeatureCard.astro:17:5` in `.carapin/index.json`; hand edit reached the panel live). Source locations come from carapin's own dev-only transform using compiler-rs `parse()`.
 
-## M2 — Pins, threads and the panel  <!-- ☐ TODO / ☑ DONE <date> -->
+## M2 — Pins, threads and the panel  <!-- ☑ DONE 2026-09-23 -->
 
 The product. Includes the panel's visual design, not as a polish pass at the end.
 
@@ -88,6 +88,8 @@ live, and replying moves it back to open. Change the page's markup so one pin's
 element disappears, and it shows as lost.
 
 *Milestone doc:* `notes/2026-09-23-m2-pins-panel.md`
+
+☑ 2026-09-23: exit demonstrated (place / reply / done + show done / delete / hand-edited review shows live and reply reopens / lost pin). Rich's look-and-feel checks outstanding.
 
 ## M3 — The Claude skill  <!-- ☐ TODO / ☑ DONE <date> -->
 
