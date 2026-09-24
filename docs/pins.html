@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pins for Astro</title>
+<meta name="description" content="What @caracode/pins is, how to install it, and how to use it with Claude Code.">
+<style>
+  :root {
+    --bg: #f7f5f1;
+    --surface: #ffffff;
+    --surface-2: #f0ede7;
+    --line: #e2ddd4;
+    --fg: #1d1b18;
+    --fg-2: #5b564e;
+    --fg-3: #8a847a;
+    --accent: #2f5bd3;
+    --code-bg: #16181d;
+    --code-fg: #e7e9ee;
+    --code-dim: #8b93a3;
+    --open: #3b82f6;
+    --review: #d99a1c;
+    --done: #2f9e6a;
+    --lost: #8a8f99;
+    --radius: 10px;
+    --radius-sm: 6px;
+    --font-ui: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
+    --space-5: 24px; --space-6: 32px; --space-7: 48px; --space-8: 72px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #101216; --surface: #171a20; --surface-2: #1d2128; --line: #2a2f38;
+      --fg: #eceef2; --fg-2: #a9afbb; --fg-3: #7d8492; --accent: #7aa2ff;
+      --code-bg: #0b0d10;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #101216; --surface: #171a20; --surface-2: #1d2128; --line: #2a2f38;
+    --fg: #eceef2; --fg-2: #a9afbb; --fg-3: #7d8492; --accent: #7aa2ff;
+    --code-bg: #0b0d10;
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font: 16px/1.6 var(--font-ui);
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent); text-underline-offset: 3px; }
+  a:hover { text-decoration-thickness: 2px; }
+  code { font-family: var(--font-mono); font-size: .88em; background: var(--surface-2); border: 1px solid var(--line); border-radius: 4px; padding: .08em .35em; }
+
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 var(--space-4); }
+  .prose { max-width: 680px; }
+
+  /* Header */
+  header.hero { padding: var(--space-8) 0 var(--space-7); border-bottom: 1px solid var(--line); }
+  .hero-grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: var(--space-7); align-items: center; }
+  .eyebrow { font: 600 12px/1 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--fg-3); margin: 0 0 var(--space-4); }
+  h1 { font-size: clamp(34px, 5vw, 52px); line-height: 1.05; letter-spacing: -.02em; margin: 0 0 var(--space-4); }
+  .lede { font-size: 19px; color: var(--fg-2); margin: 0 0 var(--space-5); }
+  .links { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+  .chip-link { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--fg); text-decoration: none; font-size: 14px; }
+  .chip-link:hover { border-color: var(--fg-3); }
+  .chip-link code { background: none; border: 0; padding: 0; }
+
+  /* Panel illustration */
+  .panel {
+    background: #111317; color: #e6e8ec; border-radius: 12px; border: 1px solid #262a31;
+    box-shadow: 0 24px 60px -24px rgba(0,0,0,.45); font-size: 13px; overflow: hidden;
+  }
+  .panel-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-bottom: 1px solid #23272e; }
+  .panel-head b { font-weight: 600; }
+  .panel-head .path { font-family: var(--font-mono); font-size: 11px; color: #8b93a3; border: 1px solid #2c313a; border-radius: 4px; padding: 1px 6px; margin-left: 6px; }
+  .panel-head .mode { font-size: 11px; color: #c6cbd4; border: 1px solid #2c313a; border-radius: 6px; padding: 3px 8px; }
+  .panel-sub { padding: 8px 14px; font-size: 12px; color: #8b93a3; border-bottom: 1px solid #23272e; }
+  .panel-sub em { font-style: normal; color: var(--review); }
+  .row { display: grid; grid-template-columns: 22px 1fr auto; gap: 10px; align-items: start; padding: 10px 14px; border-bottom: 1px solid #1d2127; }
+  .row.review { box-shadow: inset 2px 0 0 var(--review); }
+  .num { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; font: 600 11px/1 var(--font-mono); color: #111317; }
+  .num.open { background: var(--open); }
+  .num.review { background: var(--review); box-shadow: 0 0 0 3px rgba(217,154,28,.22); }
+  .num.lost { background: transparent; color: var(--lost); border: 1px dashed var(--lost); }
+  .row .t { color: #eceef2; }
+  .row .m { font-family: var(--font-mono); font-size: 11px; color: #7d8492; margin-top: 2px; }
+  .badge { font: 600 10px/1 var(--font-mono); letter-spacing: .06em; text-transform: uppercase; padding: 4px 6px; border-radius: 4px; }
+  .badge.review { color: #f1c16b; background: rgba(217,154,28,.14); }
+  .badge.open { color: #9cc0ff; background: rgba(59,130,246,.14); }
+  .badge.lost { color: #a9afbb; background: rgba(138,143,153,.16); }
+  .thread { padding: 12px 14px; }
+  .c { margin-bottom: 10px; }
+  .c .who { font-size: 11px; color: #8b93a3; }
+  .c .who b { color: #d4d8df; font-weight: 600; }
+  .c .who .st { color: #f1c16b; }
+  .reply { border: 1px solid #2c313a; border-radius: 8px; padding: 8px 10px; color: #7d8492; }
+
+  /* Sections */
+  section { padding: var(--space-7) 0; border-bottom: 1px solid var(--line); }
+  section:last-of-type { border-bottom: 0; }
+  h2 { font-size: 26px; letter-spacing: -.01em; margin: 0 0 var(--space-3); }
+  h3 { font-size: 17px; margin: var(--space-5) 0 var(--space-2); }
+  p { margin: 0 0 var(--space-4); }
+  .muted { color: var(--fg-2); }
+
+  /* Steps */
+  .steps { list-style: none; padding: 0; margin: var(--space-5) 0 0; display: grid; grid-template-columns: repeat(5, 1fr); gap: var(--space-3); counter-reset: s; }
+  .steps li { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: var(--space-4); counter-increment: s; }
+  .steps li::before { content: counter(s); display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--surface-2); border: 1px solid var(--line); font: 600 12px/1 var(--font-mono); margin-bottom: var(--space-3); }
+  .steps b { display: block; margin-bottom: 4px; }
+  .steps span { color: var(--fg-2); font-size: 14px; line-height: 1.5; display: block; }
+
+  /* Statuses */
+  .statuses { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-3); margin-top: var(--space-4); }
+  .status { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: var(--space-4); }
+  .status h4 { margin: 0 0 6px; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  .status p { margin: 0; color: var(--fg-2); font-size: 14px; }
+
+  /* Code blocks */
+  .code { position: relative; background: var(--code-bg); color: var(--code-fg); border-radius: var(--radius); margin: 0 0 var(--space-3); border: 1px solid #22262d; }
+  .code pre { margin: 0; padding: 14px 16px; overflow-x: auto; font: 13.5px/1.6 var(--font-mono); }
+  .code .lang { position: absolute; top: 8px; right: 56px; font: 11px/1 var(--font-mono); color: var(--code-dim); }
+  .copy { position: absolute; top: 6px; right: 6px; font: 600 11px/1 var(--font-ui); color: var(--code-fg); background: #252a33; border: 1px solid #333945; border-radius: 6px; padding: 5px 8px; cursor: pointer; }
+  .copy:hover { background: #2e3440; }
+  .copy:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .tok-c { color: var(--code-dim); }
+  .tok-s { color: #b5d88a; }
+  .tok-k { color: #8fb4ff; }
+
+  /* Tabs for package managers */
+  .tabs { display: flex; gap: 4px; margin: 0 0 8px; flex-wrap: wrap; }
+  .tab { font: 500 13px/1 var(--font-ui); padding: 7px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--fg-2); cursor: pointer; }
+  .tab[aria-selected="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+  .tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .pm-panel[hidden] { display: none; }
+
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-6); }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: var(--space-5); }
+  .card h3 { margin-top: 0; }
+  .card ul { margin: 0; padding-left: 1.1em; color: var(--fg-2); }
+  .card li { margin-bottom: 6px; }
+  kbd { font: 600 12px/1 var(--font-mono); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 5px; padding: 3px 6px; background: var(--surface); }
+
+  .say { display: flex; flex-wrap: wrap; gap: 8px; margin: var(--space-3) 0 var(--space-4); }
+  .say span { background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; font-size: 14px; }
+
+  footer { padding: var(--space-6) 0 var(--space-8); color: var(--fg-3); font-size: 14px; }
+
+  @media (max-width: 900px) {
+    .hero-grid, .two { grid-template-columns: 1fr; }
+    .steps { grid-template-columns: 1fr 1fr; }
+    header.hero { padding-top: var(--space-7); }
+  }
+  @media (max-width: 560px) {
+    .steps, .statuses { grid-template-columns: 1fr; }
+    .lede { font-size: 17px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <p class="eyebrow">@caracode/pins · Astro dev toolbar</p>
+      <h1>Point at the page. Let Claude make the change.</h1>
+      <p class="lede">Pins lets you click elements of your Astro site while it runs locally and leave a note on each one. Every note is saved in your repo with the exact file and line of the element, so Claude Code can find it, make the change, and reply.</p>
+      <div class="links">
+        <a class="chip-link" href="https://www.npmjs.com/package/@caracode/pins">npm · <code>@caracode/pins</code></a>
+        <a class="chip-link" href="https://github.com/CaraCodeDev/caracode-pins">GitHub · CaraCodeDev/caracode-pins</a>
+      </div>
+    </div>
+
+    <div class="panel" aria-label="Illustration of the Pins panel">
+      <div class="panel-head"><span><b>Pins</b><span class="path">/</span></span><span class="mode">Pin mode</span></div>
+      <div class="panel-sub">3 pins · <em>1 to check</em></div>
+      <div class="row review">
+        <span class="num review">1</span>
+        <div><div class="t">make the button blue</div><div class="m">a · src/pages/index.astro:64:7</div></div>
+        <span class="badge review">review</span>
+      </div>
+      <div class="row">
+        <span class="num open">2</span>
+        <div><div class="t">Hero: image or video, optional CTA with URL</div><div class="m">section · src/pages/index.astro:37:3</div></div>
+        <span class="badge open">open</span>
+      </div>
+      <div class="row">
+        <span class="num lost">3</span>
+        <div><div class="t">Remove the tagline under the logo</div><div class="m">p · element no longer on the page</div></div>
+        <span class="badge lost">lost</span>
+      </div>
+      <div class="thread">
+        <div class="c"><div class="who"><b>You</b> · 10:01</div>make the button blue</div>
+        <div class="c"><div class="who"><b>Claude</b> · 10:20 <span class="st">→ review</span></div>Changed the button to royal blue (#2b4acb) in src/pages/index.astro:64.</div>
+        <div class="reply">Reply… (a reply sends it back to open)</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section id="what">
+    <div class="prose">
+      <h2>What it is</h2>
+      <p>Pins is an integration for Astro's dev toolbar. It adds a Pins panel. Turn on pin mode, click anything on the page, and type what you want: "tighten this spacing", "make these titles bigger", "hero should take an image or a video".</p>
+      <p>It's built for two jobs:</p>
+      <ul>
+        <li><b>A quick pass of tweaks.</b> Pin a dozen small things in a couple of minutes, then hand the pile to Claude instead of describing each element in words.</li>
+        <li><b>Planning a CMS.</b> Walk the page and pin what should be editable: "image or video, optional CTA with URL". Claude reads these as content notes rather than code changes, ready for the conversation about your CMS schema.</li>
+      </ul>
+      <p class="muted">Pins only runs in <code>astro dev</code>. It never edits your source code, and nothing from it ends up in a production build.</p>
+    </div>
+  </section>
+
+  <section id="install">
+    <h2>Install</h2>
+    <p class="muted">Needs Astro 7 or later and Node 22.12 or later. Run this in your site's folder. It installs the package and adds it to your Astro config.</p>
+
+    <div class="tabs" role="tablist" aria-label="Package manager">
+      <button class="tab" role="tab" aria-selected="true" data-pm="pnpm">pnpm</button>
+      <button class="tab" role="tab" aria-selected="false" data-pm="npm">npm</button>
+      <button class="tab" role="tab" aria-selected="false" data-pm="yarn">yarn</button>
+      <button class="tab" role="tab" aria-selected="false" data-pm="bun">bun</button>
+    </div>
+    <div class="pm-panel" data-pm="pnpm"><div class="code"><span class="lang">bash</span><button class="copy">Copy</button><pre>pnpm astro add @caracode/pins</pre></div></div>
+    <div class="pm-panel" data-pm="npm" hidden><div class="code"><span class="lang">bash</span><button class="copy">Copy</button><pre>npx astro add @caracode/pins</pre></div></div>
+    <div class="pm-panel" data-pm="yarn" hidden><div class="code"><span class="lang">bash</span><button class="copy">Copy</button><pre>yarn astro add @caracode/pins</pre></div></div>
+    <div class="pm-panel" data-pm="bun" hidden><div class="code"><span class="lang">bash</span><button class="copy">Copy</button><pre>bunx astro add @caracode/pins</pre></div></div>
+
+    <h3>Or by hand</h3>
+    <div class="pm-panel" data-pm="pnpm"><div class="code"><span class="lang">bash</span><button class="copy">Copy</button><pre>pnpm add -D @caracode/pins</pre></div></div>
+    <div class="pm-panel" data-pm="npm" hidden><div class="code"><span class="lang">bash</span><button class="copy">Copy</button><pre>npm install -D @caracode/pins</pre></div></div>
+    <div class="pm-panel" data-pm="yarn" hidden><div class="code"><span class="lang">bash</span><button class="copy">Copy</button><pre>yarn add -D @caracode/pins</pre></div></div>
+    <div class="pm-panel" data-pm="bun" hidden><div class="code"><span class="lang">bash</span><button class="copy">Copy</button><pre>bun add -d @caracode/pins</pre></div></div>
+    <p class="muted">Then add it to <code>astro.config.mjs</code>. There are no options.</p>
+    <div class="code"><span class="lang">js</span><button class="copy">Copy</button><pre><span class="tok-k">import</span> { defineConfig } <span class="tok-k">from</span> <span class="tok-s">'astro/config'</span>;
+<span class="tok-k">import</span> pins <span class="tok-k">from</span> <span class="tok-s">'@caracode/pins'</span>;
+
+<span class="tok-k">export default</span> defineConfig({
+  integrations: [pins()],
+});</pre></div>
+
+    <h3>Check it's working</h3>
+    <p class="muted">Start the dev server as usual. A map-pin button appears in the Astro dev toolbar at the bottom of the page, and the terminal says it installed the Claude skill into <code>.claude/skills/pins/</code>.</p>
+    <div class="code"><span class="lang">bash</span><button class="copy">Copy</button><pre>pnpm astro dev</pre></div>
+  </section>
+
+  <section id="use">
+    <h2>How a pass works</h2>
+    <ol class="steps">
+      <li><b>Open Pins</b><span>Click the Pins button in the dev toolbar.</span></li>
+      <li><b>Pin things</b><span>Turn on pin mode, click an element, type a note, press <kbd>⌘</kbd> <kbd>↵</kbd>. Pin mode stays on for the next one.</span></li>
+      <li><b>Work the pins</b><span>In Claude Code, in the site's folder, say "work the pins".</span></li>
+      <li><b>Review</b><span>Each changed pin moves to review with Claude's note on what it did. The panel updates by itself.</span></li>
+      <li><b>Done or reply</b><span>Mark it done, or reply ("no, indigo") to send it back.</span></li>
+    </ol>
+
+    <h3>Pin statuses</h3>
+    <div class="statuses">
+      <div class="status"><h4><span class="dot" style="background:var(--open)"></span>Open</h4><p>Waiting for Claude. New pins start here, and any reply you make on a review or done pin sends it back here.</p></div>
+      <div class="status"><h4><span class="dot" style="background:var(--review)"></span>Review</h4><p>Claude made the change and said what it did. Your turn to look.</p></div>
+      <div class="status"><h4><span class="dot" style="background:var(--done)"></span>Done</h4><p>You checked it. Only you can mark a pin done. Done pins are hidden unless you show them.</p></div>
+    </div>
+  </section>
+
+  <section id="claude">
+    <div class="two">
+      <div>
+        <h2>With Claude Code</h2>
+        <p>The first <code>astro dev</code> writes a Claude Code skill into your repo, so any session in that folder knows the pin format. Just ask:</p>
+        <div class="say"><span>work the pins</span><span>/pins</span><span>check the pins</span><span>what's pinned</span><span>what content fields did I pin?</span></div>
+        <p class="muted">By default Claude changes the component, so pinning one card changes every card. Say "just this one" in the note to narrow it. If a note is unclear, Claude replies with a question and leaves the pin open.</p>
+        <p class="muted">Content notes, like "image or video, optional CTA", aren't built by "work the pins". Claude skips them and lists them, so you can plan your CMS from them.</p>
+      </div>
+      <div class="card">
+        <h3>The panel</h3>
+        <ul>
+          <li><b>Push</b> (default) narrows the page to make room, like docked devtools. Under 1280px wide it overlays on the right instead.</li>
+          <li><b>Right</b> or <b>Left</b> overlay the page and tuck into a tab while you're pinning.</li>
+          <li><kbd>⌘</kbd> <kbd>↵</kbd> saves (Ctrl+Enter on Windows and Linux). <kbd>Esc</kbd> cancels a note, then leaves pin mode.</li>
+          <li>Numbered markers show only while the panel is open.</li>
+          <li>A pin whose element is gone is marked <b>lost</b> rather than guessed.</li>
+          <li>Works with Astro view transitions: the panel follows you between pages.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="files">
+    <div class="two">
+      <div>
+        <h2>What it writes</h2>
+        <p><code>.carapin/</code> holds one JSON file per page: <code>/</code> is <code>index.json</code>, <code>/blog/post/</code> is <code>blog/post.json</code>. Commit them or ignore them, whichever suits you.</p>
+        <p><code>.claude/skills/pins/SKILL.md</code> is the skill. It updates itself when the package updates. Delete its marker line and it becomes yours; Pins won't overwrite it again.</p>
+        <p class="muted">Nothing else, and only while <code>astro dev</code> is running.</p>
+      </div>
+      <div>
+        <h2>Limits</h2>
+        <ul class="muted">
+          <li>Astro 7 or later, dev only.</li>
+          <li>Source locations come from your <code>.astro</code> files. Elements inside React, Vue or Svelte components point at the nearest <code>.astro</code> element around them.</li>
+          <li><code>.md</code> and <code>.mdx</code> content isn't annotated, but you can still pin it.</li>
+          <li>The panel shows the current page's pins only.</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>A pin in the file</h3>
+    <div class="code"><span class="lang">json</span><button class="copy">Copy</button><pre>{
+  <span class="tok-k">"id"</span>: <span class="tok-s">"c27c07dc"</span>,
+  <span class="tok-k">"status"</span>: <span class="tok-s">"review"</span>,
+  <span class="tok-k">"anchor"</span>: {
+    <span class="tok-k">"source"</span>: <span class="tok-s">"src/components/FeatureCard.astro:17:5"</span>,
+    <span class="tok-k">"text"</span>: <span class="tok-s">"Traded directly with growers"</span>,
+    <span class="tok-k">"tag"</span>: <span class="tok-s">"h3"</span>
+  },
+  <span class="tok-k">"comments"</span>: [
+    { <span class="tok-k">"author"</span>: <span class="tok-s">"human"</span>,  <span class="tok-k">"text"</span>: <span class="tok-s">"Make these titles bigger"</span> },
+    { <span class="tok-k">"author"</span>: <span class="tok-s">"claude"</span>, <span class="tok-k">"text"</span>: <span class="tok-s">"Bumped .feature-card__title to 1.3rem in FeatureCard.astro:17"</span> }
+  ]
+}</pre></div>
+    <p class="muted">Shortened: real pins also carry timestamps, a selector for the exact instance, and the chain of files the element sits in. The full format is in the <a href="https://github.com/CaraCodeDev/caracode-pins/blob/main/packages/pins/skill/SKILL.md">skill file</a>.</p>
+  </section>
+
+  <section id="update">
+    <h2>Update or remove</h2>
+    <div class="code"><span class="lang">bash</span><button class="copy">Copy</button><pre><span class="tok-c"># update (the skill refreshes on the next astro dev)</span>
+pnpm up @caracode/pins
+
+<span class="tok-c"># remove: take pins() out of astro.config.mjs first</span>
+pnpm remove @caracode/pins</pre></div>
+    <p class="muted">Delete <code>.carapin/</code> and <code>.claude/skills/pins/</code> as well if you don't want to keep your pins or the skill.</p>
+  </section>
+
+</main>
+
+<footer class="wrap">
+  <code>@caracode/pins</code> · MIT · <a href="https://github.com/CaraCodeDev/caracode-pins">github.com/CaraCodeDev/caracode-pins</a> · <a href="https://www.npmjs.com/package/@caracode/pins">npm</a>
+</footer>
+
+<script>
+  (function () {
+    var KEY = 'pins-guide:pm';
+    function select(pm) {
+      document.querySelectorAll('.tab').forEach(function (t) { t.setAttribute('aria-selected', String(t.dataset.pm === pm)); });
+      document.querySelectorAll('.pm-panel').forEach(function (p) { p.hidden = p.dataset.pm !== pm; });
+      try { localStorage.setItem(KEY, pm); } catch (e) {}
+    }
+    document.querySelectorAll('.tab').forEach(function (t) {
+      t.addEventListener('click', function () { select(t.dataset.pm); });
+    });
+    try { var saved = localStorage.getItem(KEY); if (saved) select(saved); } catch (e) {}
+
+    document.querySelectorAll('.copy').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var text = b.parentElement.querySelector('pre').innerText;
+        var done = function () { b.textContent = 'Copied'; setTimeout(function () { b.textContent = 'Copy'; }, 1400); };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(done, function () { b.textContent = 'Select and copy'; });
+        } else { b.textContent = 'Select and copy'; }
+      });
+    });
+  })();
+</script>
+</body>
+</html>
